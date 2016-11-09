@@ -15,17 +15,16 @@
 #include "cinder/Capture.h"
 #include "cinder/qtime/AvfWriter.h"
 #include "cinder/qtime/QuickTimeGl.h"
-#include "cinder/Log.h"
 
 #include "EDSDK.h"
 #include "EDSDKTypes.h"
 #include "EDSDKErrors.h"
 
+#define EOS_USE false
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
-
-#define EOS_USE true
 
 class DoingDancingApp : public App {
     
@@ -37,7 +36,7 @@ public:
     void keyDown( KeyEvent event ) override;
     void update() override;
     void draw() override;
-    void cleanup() override { mMovieExporter.reset(); }
+    void cleanup() override;
     
 private:
     
@@ -45,10 +44,17 @@ private:
     u_int8_t                recording_count = 0;
     fs::path                saveFolder;
     
+#if EOS_USE == true
+    EdsError err;
+    EdsCameraRef camera;
+    bool isSDKLoaded;
+#else
     CaptureRef              mCapture;
+#endif
     
     qtime::MovieWriterRef   mMovieExporter;
     qtime::MovieGlRef		mMovie;
+    
     gl::TextureRef			mFrameTexture;
     gl::TextureRef          mTexture;
     
@@ -57,7 +63,7 @@ private:
     void stopRecording();
     void loadMovie(const fs::path &moviePath);
     
-    #if EOS_USE == true
+#if EOS_USE == true
     EdsError getFirstCamera(EdsCameraRef *camera);
     
     static EdsError EDSCALLBACK handlePropertyEvent( EdsPropertyEvent, EdsPropertyID, EdsUInt32, EdsVoid *);
@@ -66,8 +72,7 @@ private:
     EdsError startLiveview();
     EdsError endLiveview();
     EdsError downloadEvfData();
-    
-    #endif
+#endif
     
 };
 

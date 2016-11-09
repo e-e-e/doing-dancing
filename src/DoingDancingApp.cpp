@@ -1,18 +1,7 @@
 #include "DoingDancingApp.h"
 
-#include "cinder/app/App.h"
-#include "cinder/app/RendererGl.h"
-#include "cinder/gl/gl.h"
-#include "cinder/Capture.h"
-#include "cinder/qtime/AvfWriter.h"
-#include "cinder/qtime/QuickTimeGl.h"
 #include "cinder/Log.h"
 
-
-
-#include "EDSDK.h"
-#include "EDSDKTypes.h"
-#include "EDSDKErrors.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -31,6 +20,41 @@ void DoingDancingApp::setup() {
     setFrameRate( 30 );
     printDevices();
     
+#if EOS_USE == true
+    err = EDS_ERR_OK;
+    camera = NULL;
+    isSDKLoaded = false;
+    
+    // Initialize SDK
+    err = EdsInitializeSDK();
+    if(err == EDS_ERR_OK) {
+        isSDKLoaded = true;
+    }
+    // Get first camera
+    if(err == EDS_ERR_OK) {
+        err = getFirstCamera (&camera);
+    }
+    // Set event handler
+    if(err == EDS_ERR_OK) {
+        err = EdsSetObjectEventHandler(camera, kEdsObjectEvent_All, handleObjectEvent, NULL);
+    }
+    // Set event handler
+    if(err == EDS_ERR_OK) {
+        err = EdsSetPropertyEventHandler(camera, kEdsPropertyEvent_All, handlePropertyEvent, NULL);
+    }
+    // Open session with camera
+    
+    if(err == EDS_ERR_OK) {
+        err = EdsOpenSession(camera);
+    }
+    
+    if(err == EDS_ERR_OK)
+        printf("EOS OPENED\n");
+    else
+        printf("EOS FAILED\n");
+
+    startLiveview();
+#else
     try {
         mCapture = Capture::create( getWindowWidth(), getWindowHeight() );
         mCapture->start();
@@ -38,10 +62,36 @@ void DoingDancingApp::setup() {
         CI_LOG_EXCEPTION( "Failed to init capture ", exc );
         quit();
     }
-    
+#endif
     saveFolder = getFolderPath(); //getSaveFilePath();
     
     if( saveFolder.empty() ) quit();
+}
+
+void DoingDancingApp::cleanup () {
+    
+#if EOS_USE == true
+    
+    endLiveview();
+    if(err == EDS_ERR_OK) {
+        err = EdsCloseSession(camera);
+    }
+    // Release camera
+    if(camera != NULL) {
+        printf("Camera Released\n");
+        EdsRelease(camera);
+    }
+    // Terminate SDK
+    if(isSDKLoaded) {
+        printf("EOS CLOSED\n");
+        EdsTerminateSDK();
+    }
+    
+#endif
+    
+    if(mMovieExporter) mMovieExporter->finish();
+    mMovieExporter.reset();
+    
 }
 
 void DoingDancingApp::keyDown( KeyEvent event ) {
@@ -66,6 +116,7 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
 
 void DoingDancingApp::update() {
     //console() << "fs: " << getAverageFps() << " / " << getFrameRate() << " " << isFrameRateEnabled() << endl;
+#if EOS_USE == false
     if( mCapture && mCapture->checkNewFrame() ) {
         if( ! mTexture ) {
             // Capture images come back as top-down, and it's more efficient to keep them that way
@@ -87,6 +138,9 @@ void DoingDancingApp::update() {
             mMovieExporter->addFrame(  copyWindowSurface()  );
         }
     }
+#else 
+    downloadEvfData();
+#endif
 }
 
 void DoingDancingApp::draw() {
@@ -274,10 +328,9 @@ EdsError DoingDancingApp::downloadEvfData() {
             EdsGetPointer(stream,(EdsVoid**)&ImageData);
             EdsGetLength(stream, &DataSize);
             
-            Buffer buffer(ImageData,DataSize);
-            mLivePixels = Surface( loadImage( DataSourceBuffer::create(buffer), ImageSource::Options(), "jpg" ) );
-            
-            printf("%i,%i\n",mLivePixels.getWidth(), mLivePixels.getHeight());
+            BufferRef buffer = Buffer::create(ImageData,DataSize);
+            mTexture = gl::Texture::create( loadImage( DataSourceBuffer::create(buffer), ImageSource::Options(), "jpg" ), gl::Texture::Format().loadTopDown() );
+            printf("%i,%i\n",mTexture->getWidth(), mTexture->getHeight());
             
         }
     }
