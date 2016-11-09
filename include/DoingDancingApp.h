@@ -1,11 +1,3 @@
-//
-//  DoingDanceingApp.h
-//  DoingDancing
-//
-//  Created by Benjamin Forster on 9/11/2016.
-//
-//
-
 #ifndef DoingDanceingApp_h
 #define DoingDanceingApp_h
 
