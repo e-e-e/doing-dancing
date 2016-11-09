@@ -1,3 +1,5 @@
+#include "DoingDancingApp.h"
+
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
@@ -6,41 +8,15 @@
 #include "cinder/qtime/QuickTimeGl.h"
 #include "cinder/Log.h"
 
+
+
+#include "EDSDK.h"
+#include "EDSDKTypes.h"
+#include "EDSDKErrors.h"
+
 using namespace ci;
 using namespace ci::app;
 using namespace std;
-
-class DoingDancingApp : public App {
-
-  public:
-	
-    static void prepareSettings( Settings *settings );
-    
-    void setup() override;
-	void keyDown( KeyEvent event ) override;
-	void update() override;
-	void draw() override;
-    void cleanup() override { mMovieExporter.reset(); }
-    
-  private:
-    
-    Boolean                 recording = false;
-    u_int8_t                recording_count = 0;
-    fs::path                saveFolder;
-    
-    CaptureRef              mCapture;
-    
-    qtime::MovieWriterRef   mMovieExporter;
-    qtime::MovieGlRef		mMovie;
-    gl::TextureRef			mFrameTexture;
-    gl::TextureRef          mTexture;
-    
-    void printDevices();
-    void startRecording();
-    void stopRecording();
-    void loadMovie(const fs::path &moviePath);
-    
-};
 
 void DoingDancingApp::prepareSettings( App::Settings *settings )
 {
@@ -175,5 +151,152 @@ void DoingDancingApp::printDevices()
         console() << "Device: " << device->getName() << " " << endl;
     }
 }
+
+#if EOS_USE == true
+
+EdsError DoingDancingApp::getFirstCamera(EdsCameraRef *camera) {
+    
+    EdsError err = EDS_ERR_OK;
+    EdsCameraListRef cameraList = NULL;
+    EdsUInt32 count = 0;
+    // Get camera list
+    err = EdsGetCameraList(&cameraList);
+    // Get number of cameras
+    if(err == EDS_ERR_OK) {
+        err = EdsGetChildCount(cameraList, &count);
+        if(count == 0) {
+            err = EDS_ERR_DEVICE_NOT_FOUND;
+        }
+    }
+    
+    // Get first camera retrieved
+    if(err == EDS_ERR_OK) {
+        err = EdsGetChildAtIndex(cameraList,0,camera);
+    }
+    
+    // Release camera list
+    if(cameraList != NULL) {
+        EdsRelease(cameraList);
+        cameraList = NULL;
+    }
+    
+    return err;
+}
+
+
+EdsError EDSCALLBACK DoingDancingApp::handleObjectEvent( EdsObjectEvent event, EdsBaseRef object,EdsVoid * context)
+{
+    // do something
+    /* switch(event)
+     EdsVoid * context)
+     {
+     case kEdsObjectEvent_DirItemRequestTransfer:
+     downloadImage(object); break;
+     default:
+     break;
+     } */
+    // Object must be released
+    printf("OBJECT EVENT\n");
+    if(object) {
+        EdsRelease(object);
+    }
+    return EDS_ERR_OK;
+}
+
+
+EdsError EDSCALLBACK DoingDancingApp::handlePropertyEvent( EdsPropertyEvent inEvent, EdsPropertyID inPropertyID,
+                                                             EdsUInt32 inParam, EdsVoid * inContext)
+{
+    printf("PROPERTY EVENT\n");
+    return EDS_ERR_OK;
+}
+
+EdsError DoingDancingApp::startLiveview() {
+    EdsError err = EDS_ERR_OK;
+    // Get the output device for the live view image
+    EdsUInt32 device;
+    err = EdsGetPropertyData(camera, kEdsPropID_Evf_OutputDevice, 0 , sizeof(device), &device );
+    // PC live view starts by setting the PC as the output device for the live view image.
+    if(err == EDS_ERR_OK) {
+        device |= kEdsEvfOutputDevice_PC;
+        err = EdsSetPropertyData(camera, kEdsPropID_Evf_OutputDevice, 0 , sizeof(device), &device);
+    }
+    // A property change event notification is issued from the camera if property settings are made successfully.
+    // Start downloading of the live view image once the property change notification arrives.
+    return err;
+}
+
+EdsError DoingDancingApp::endLiveview() {
+    EdsError err = EDS_ERR_OK;
+    // Get the output device for the live view image
+    EdsUInt32 device;
+    err = EdsGetPropertyData(camera, kEdsPropID_Evf_OutputDevice, 0, sizeof(device), &device );
+    // PC live view ends if the PC is disconnected from the live view image output device.
+    if(err == EDS_ERR_OK)
+    {
+        device &= ~kEdsEvfOutputDevice_PC;
+        err = EdsSetPropertyData(camera, kEdsPropID_Evf_OutputDevice, 0 , sizeof(device), &device);
+    }
+    return err;
+}
+
+EdsError DoingDancingApp::downloadEvfData() {
+    EdsError err = EDS_ERR_OK;
+    EdsStreamRef stream = NULL;
+    EdsEvfImageRef evfImage = NULL;
+    // Create memory stream.
+    err = EdsCreateMemoryStream( 0, &stream);
+    // Create EvfImageRef.
+    if(err == EDS_ERR_OK) {
+        err = EdsCreateEvfImageRef(stream, &evfImage);
+    }
+    // Download live view image data.
+    if(err == EDS_ERR_OK) {
+        err = EdsDownloadEvfImage(camera, evfImage);
+    }
+    // Get the incidental data of the image.
+    if(err == EDS_ERR_OK) {
+        // Get the zoom ratio
+        EdsUInt32 zoom;
+        EdsGetPropertyData(evfImage, kEdsPropID_Evf_ZoomPosition, 0 , sizeof(zoom), &zoom);
+        // Get the focus and zoom border position
+        EdsPoint point;
+        EdsGetPropertyData(evfImage, kEdsPropID_Evf_ZoomPosition, 0 , sizeof(point), &point);
+        
+        EdsUInt32 length;
+        EdsGetLength(stream, &length);
+        
+        if( length > 0 ){
+            
+            unsigned char * ImageData;
+            EdsUInt32 DataSize = length;
+            
+            EdsGetPointer(stream,(EdsVoid**)&ImageData);
+            EdsGetLength(stream, &DataSize);
+            
+            Buffer buffer(ImageData,DataSize);
+            mLivePixels = Surface( loadImage( DataSourceBuffer::create(buffer), ImageSource::Options(), "jpg" ) );
+            
+            printf("%i,%i\n",mLivePixels.getWidth(), mLivePixels.getHeight());
+            
+        }
+    }
+    
+    // Release stream
+    if(stream != NULL) {
+        EdsRelease(stream);
+        stream = NULL;
+    }
+    // Release evfImage
+    if(evfImage != NULL) {
+        EdsRelease(evfImage);
+        evfImage = NULL;
+    }
+    return err;
+}
+
+#endif
+
+
 
 CINDER_APP( DoingDancingApp, RendererGl )
