@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef DoingDanceingApp_h
 #define DoingDanceingApp_h
 
@@ -56,6 +58,7 @@ private:
     void loadMovie(const fs::path &moviePath);
     
 #if EOS_USE == true
+    
     EdsError getFirstCamera(EdsCameraRef *camera);
     
     static EdsError EDSCALLBACK handlePropertyEvent( EdsPropertyEvent, EdsPropertyID, EdsUInt32, EdsVoid *);
@@ -64,6 +67,7 @@ private:
     EdsError startLiveview();
     EdsError endLiveview();
     EdsError downloadEvfData();
+    
 #endif
     
 };
