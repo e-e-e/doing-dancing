@@ -2,7 +2,6 @@
 
 #include "cinder/Log.h"
 
-
 using namespace ci;
 using namespace ci::app;
 using namespace std;
@@ -18,6 +17,7 @@ void DoingDancingApp::prepareSettings( App::Settings *settings )
 
 void DoingDancingApp::setup() {
     setFrameRate( 30 );
+    
     printDevices();
     
 #if EOS_USE == true
@@ -66,6 +66,7 @@ void DoingDancingApp::setup() {
     saveFolder = getFolderPath(); //getSaveFilePath();
     
     if( saveFolder.empty() ) quit();
+    
 }
 
 void DoingDancingApp::cleanup () {
@@ -98,16 +99,16 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
     const char key = event.getChar();
     switch (key) {
         case ' ':
-            recording = !recording;
-            console() << "recording: " << (recording ? "true" : "false") << endl;
-            //start recording
-            if( recording ) startRecording();
-            else {
-                stopRecording();
-                fs::path path = fs::path(saveFolder);
-                path += "/doing_dancing_" + to_string(recording_count) + ".mov";
-                loadMovie(path);
-            }
+//            recording = !recording;
+//            console() << "recording: " << (recording ? "true" : "false") << endl;
+//            //start recording
+//            if( recording ) startRecording();
+//            else {
+//                stopRecording();
+//                fs::path path = fs::path(saveFolder);
+//                path += "/doing_dancing_" + to_string(recording_count) + ".mov";
+//                loadMovie(path);
+//            }
             break;
         default:
             break;
@@ -115,9 +116,52 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
 }
 
 void DoingDancingApp::update() {
+    
+    if( recording ) {
+        updateVideoRecording();
+    } else {
+        recording_timer++;
+        console() << recording_timer << endl;
+        if( recording_timer >= OFF_TIME ) {
+            console() << "start" << endl;
+            startVideoRecording();
+        }
+    }
+
+}
+
+void DoingDancingApp::draw() {
+    gl::clear( Color( 0, 0, 0 ) );
+    if(recording) {
+        Rectf centeredRect;
+        if(mFrameTexture) {
+            centeredRect = Rectf( mFrameTexture->getBounds() ).getCenteredFit( getWindowBounds(), true );
+            gl::color(1.0, 1.0, 1.0, 1.0);
+            gl::draw( mFrameTexture, centeredRect );
+        }
+        if( mTexture ) {
+            float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
+            centeredRect = Rectf( mTexture->getBounds() ).getCenteredFit( getWindowBounds(), true );
+            gl::color(1.0, 1.0, 1.0, alpha);
+            gl::draw( mTexture );
+        }
+    }
+    
+}
+
+#pragma mark -- APP HELPER FUNCTIONS
+
+fs::path DoingDancingApp::getVideoRecordingPath (int i) {
+    fs::path path = fs::path(saveFolder);
+    path += "/doing_dancing_" + to_string(i) + ".mov";
+    return path;
+}
+
+void DoingDancingApp::updateVideoRecording() {
     //console() << "fs: " << getAverageFps() << " / " << getFrameRate() << " " << isFrameRateEnabled() << endl;
 #if EOS_USE == false
     if( mCapture && mCapture->checkNewFrame() ) {
+        
         if( ! mTexture ) {
             // Capture images come back as top-down, and it's more efficient to keep them that way
             mTexture = gl::Texture::create( *mCapture->getSurface(), gl::Texture::Format().loadTopDown() );
@@ -137,55 +181,54 @@ void DoingDancingApp::update() {
         if( mMovieExporter && recording ) {
             mMovieExporter->addFrame(  copyWindowSurface()  );
         }
+        
+        recording_timer++;
+        if(recording_timer >= RECORDING_TIME) {
+            stopVideoRecording();
+        }
     }
-#else 
+#else
     downloadEvfData();
 #endif
-}
-
-void DoingDancingApp::draw() {
-    gl::clear( Color( 0, 0, 0 ) );
-    Rectf centeredRect;
-    if(mFrameTexture) {
-        centeredRect = Rectf( mFrameTexture->getBounds() ).getCenteredFit( getWindowBounds(), true );
-        gl::color(1.0, 1.0, 1.0, 1.0);
-        gl::draw( mFrameTexture, centeredRect );
-    }
-    if( mTexture ) {
-        float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
-        centeredRect = Rectf( mTexture->getBounds() ).getCenteredFit( getWindowBounds(), true );
-        gl::color(1.0, 1.0, 1.0, alpha);
-        gl::draw( mTexture );
-    }
     
 }
 
-void DoingDancingApp::startRecording() {
+void DoingDancingApp::startVideoRecording() {
+
+    if(recording_count>0) {
+        fs::path movie_path = getVideoRecordingPath(recording_count);
+        loadMovie(movie_path);
+    }
+    recording = true;
+    recording_timer = 0;
+    recording_count++;
+    fs::path path = getVideoRecordingPath(recording_count);
+    console() << "saving to " << path << endl;
+    
     auto format = qtime::MovieWriter::Format()
     .codec( qtime::MovieWriter::H264 )
     .fileType( qtime::MovieWriter::QUICK_TIME_MOVIE )
     .jpegQuality( 0.09f )
     .averageBitsPerSecond( 10000000 );
     //.defaultFrameDuration( 1.0/30.0 );
-    recording_count++;
-    fs::path path = fs::path(saveFolder);
-    path += "/doing_dancing_" + to_string(recording_count) + ".mov";
-    console() << "saving to " << path << endl;
     mMovieExporter = qtime::MovieWriter::create( path, getWindowWidth(), getWindowHeight(), format );
+    
+    
 }
 
-void DoingDancingApp::stopRecording() {
+void DoingDancingApp::stopVideoRecording() {
+    if(mMovie && mMovie != nullptr) {
+        mMovie->stop();
+        mMovie.reset();
+    }
     mMovieExporter->finish();
     mMovieExporter.reset();
+    recording_timer = 0;
+    recording = false;
 }
 
 void DoingDancingApp::loadMovie( const fs::path &moviePath ) {
     try {
-        if(mMovie && mMovie != nullptr) {
-            console() << "stop movie" << endl;
-            mMovie->stop();
-            mMovie.reset();
-        }
         console() << "loading movie " << moviePath << endl;
         mMovie = qtime::MovieGl::create( moviePath );
         console() << "framerate: " << mMovie->getFramerate() << endl;
@@ -199,12 +242,19 @@ void DoingDancingApp::loadMovie( const fs::path &moviePath ) {
     mFrameTexture.reset();
 }
 
+void DoingDancingApp::startSoundRecording() {
+    
+}
+
 void DoingDancingApp::printDevices()
 {
     for( const auto &device : Capture::getDevices() ) {
         console() << "Device: " << device->getName() << " " << endl;
     }
 }
+
+#pragma mark -- EOS SDK HELPERS
+
 
 #if EOS_USE == true
 
@@ -317,20 +367,20 @@ EdsError DoingDancingApp::downloadEvfData() {
         EdsPoint point;
         EdsGetPropertyData(evfImage, kEdsPropID_Evf_ZoomPosition, 0 , sizeof(point), &point);
         
-        EdsUInt32 length;
+        EdsUInt64 length;
         EdsGetLength(stream, &length);
         
         if( length > 0 ){
             
             unsigned char * ImageData;
-            EdsUInt32 DataSize = length;
+            EdsUInt64 DataSize = length;
             
             EdsGetPointer(stream,(EdsVoid**)&ImageData);
             EdsGetLength(stream, &DataSize);
             
             BufferRef buffer = Buffer::create(ImageData,DataSize);
             mTexture = gl::Texture::create( loadImage( DataSourceBuffer::create(buffer), ImageSource::Options(), "jpg" ), gl::Texture::Format().loadTopDown() );
-            printf("%i,%i\n",mTexture->getWidth(), mTexture->getHeight());
+            //printf("%i,%i\n",mTexture->getWidth(), mTexture->getHeight());
             
         }
     }

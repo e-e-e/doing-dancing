@@ -16,12 +16,11 @@
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
 		00B9955A1B128DF400A5C623 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995581B128DF400A5C623 /* IOKit.framework */; };
 		00B9955B1B128DF400A5C623 /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995591B128DF400A5C623 /* IOSurface.framework */; };
-		435987551DD32B260004033F /* DPP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 435987531DD32B260004033F /* DPP.framework */; };
-		435987561DD32B260004033F /* EDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 435987541DD32B260004033F /* EDSDK.framework */; };
-		435987581DD32E660004033F /* DPP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 435987531DD32B260004033F /* DPP.framework */; };
-		435987591DD32E660004033F /* DPP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 435987531DD32B260004033F /* DPP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		4359875A1DD32E660004033F /* EDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 435987541DD32B260004033F /* EDSDK.framework */; };
-		4359875B1DD32E660004033F /* EDSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 435987541DD32B260004033F /* EDSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		43BFDA3A1DD87458009C9E49 /* DPP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43C397B31DD86F690030BB9A /* DPP.framework */; };
+		43BFDA3B1DD87458009C9E49 /* EDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43C397B41DD86F690030BB9A /* EDSDK.framework */; };
+		43BFDA3E1DD877F2009C9E49 /* CaptureLooper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43BFDA3C1DD877F2009C9E49 /* CaptureLooper.cpp */; };
+		43C397BA1DD871520030BB9A /* DPP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 43C397B31DD86F690030BB9A /* DPP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		43C397BB1DD871520030BB9A /* EDSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 43C397B41DD86F690030BB9A /* EDSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
 		6188C3035F3A486A881A9C85 /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = F4E7A1CDAF294FF89F9BB281 /* CinderApp.icns */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -32,12 +31,12 @@
 /* Begin PBXCopyFilesBuildPhase section */
 		4359875C1DD32E660004033F /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 12;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				4359875B1DD32E660004033F /* EDSDK.framework in Embed Frameworks */,
-				435987591DD32E660004033F /* DPP.framework in Embed Frameworks */,
+				43C397BA1DD871520030BB9A /* DPP.framework in Embed Frameworks */,
+				43C397BB1DD871520030BB9A /* EDSDK.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -58,12 +57,14 @@
 		21B873FAFD474475B0ED5C17 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
-		435987501DD32AC20004033F /* EDSDK.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDSDK.h; path = ../include/EDSDK.h; sourceTree = "<group>"; };
-		435987511DD32AC20004033F /* EDSDKErrors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDSDKErrors.h; path = ../include/EDSDKErrors.h; sourceTree = "<group>"; };
-		435987521DD32AC20004033F /* EDSDKTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDSDKTypes.h; path = ../include/EDSDKTypes.h; sourceTree = "<group>"; };
-		435987531DD32B260004033F /* DPP.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = DPP.framework; sourceTree = "<group>"; };
-		435987541DD32B260004033F /* EDSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = EDSDK.framework; sourceTree = "<group>"; };
 		435987571DD32BA90004033F /* DoingDancingApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DoingDancingApp.h; path = ../include/DoingDancingApp.h; sourceTree = "<group>"; };
+		43BFDA3C1DD877F2009C9E49 /* CaptureLooper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CaptureLooper.cpp; path = ../src/CaptureLooper.cpp; sourceTree = "<group>"; };
+		43BFDA3D1DD877F2009C9E49 /* CaptureLooper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = CaptureLooper.hpp; path = ../src/CaptureLooper.hpp; sourceTree = "<group>"; };
+		43C397B31DD86F690030BB9A /* DPP.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = DPP.framework; sourceTree = "<group>"; };
+		43C397B41DD86F690030BB9A /* EDSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = EDSDK.framework; sourceTree = "<group>"; };
+		43C397B71DD86FB00030BB9A /* EDSDK.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDSDK.h; sourceTree = "<group>"; };
+		43C397B81DD86FB00030BB9A /* EDSDKErrors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDSDKErrors.h; sourceTree = "<group>"; };
+		43C397B91DD86FB00030BB9A /* EDSDKTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDSDKTypes.h; sourceTree = "<group>"; };
 		5323E6B10EAFCA74003A9687 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		5E415559B18041EC9D507F1C /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* DoingDancing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoingDancing.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -78,18 +79,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				435987581DD32E660004033F /* DPP.framework in Frameworks */,
+				43BFDA3A1DD87458009C9E49 /* DPP.framework in Frameworks */,
+				43BFDA3B1DD87458009C9E49 /* EDSDK.framework in Frameworks */,
 				006D720419952D00008149E2 /* AVFoundation.framework in Frameworks */,
 				006D720519952D00008149E2 /* CoreMedia.framework in Frameworks */,
-				435987561DD32B260004033F /* EDSDK.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				0091D8F90E81B9330029341E /* OpenGL.framework in Frameworks */,
-				4359875A1DD32E660004033F /* EDSDK.framework in Frameworks */,
 				5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */,
 				00B784B30FF439BC000DE1D7 /* Accelerate.framework in Frameworks */,
 				00B784B40FF439BC000DE1D7 /* AudioToolbox.framework in Frameworks */,
 				00B784B50FF439BC000DE1D7 /* AudioUnit.framework in Frameworks */,
-				435987551DD32B260004033F /* DPP.framework in Frameworks */,
 				00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */,
 				00B9955A1B128DF400A5C623 /* IOKit.framework in Frameworks */,
 				00B9955B1B128DF400A5C623 /* IOSurface.framework in Frameworks */,
@@ -112,6 +111,8 @@
 			children = (
 				435987571DD32BA90004033F /* DoingDancingApp.h */,
 				EFC9B4579B984E988930AB60 /* DoingDancingApp.cpp */,
+				43BFDA3C1DD877F2009C9E49 /* CaptureLooper.cpp */,
+				43BFDA3D1DD877F2009C9E49 /* CaptureLooper.hpp */,
 			);
 			name = Source;
 			sourceTree = "<group>";
@@ -167,9 +168,9 @@
 		29B97315FDCFA39411CA2CEA /* Headers */ = {
 			isa = PBXGroup;
 			children = (
-				435987501DD32AC20004033F /* EDSDK.h */,
-				435987511DD32AC20004033F /* EDSDKErrors.h */,
-				435987521DD32AC20004033F /* EDSDKTypes.h */,
+				43C397B71DD86FB00030BB9A /* EDSDK.h */,
+				43C397B81DD86FB00030BB9A /* EDSDKErrors.h */,
+				43C397B91DD86FB00030BB9A /* EDSDKTypes.h */,
 				5E415559B18041EC9D507F1C /* Resources.h */,
 				E845DC2FFD6A484EAA266711 /* DoingDancing_Prefix.pch */,
 			);
@@ -188,8 +189,8 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				435987531DD32B260004033F /* DPP.framework */,
-				435987541DD32B260004033F /* EDSDK.framework */,
+				43C397B31DD86F690030BB9A /* DPP.framework */,
+				43C397B41DD86F690030BB9A /* EDSDK.framework */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
 				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 				A8BE72CCF89A475198F89AA1 /* QuickTime.framework */,
@@ -206,8 +207,8 @@
 			buildPhases = (
 				8D1107290486CEB800E47090 /* Resources */,
 				8D11072C0486CEB800E47090 /* Sources */,
-				8D11072E0486CEB800E47090 /* Frameworks */,
 				4359875C1DD32E660004033F /* Embed Frameworks */,
+				8D11072E0486CEB800E47090 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -262,6 +263,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9903840D04FA4B618A6CA902 /* DoingDancingApp.cpp in Sources */,
+				43BFDA3E1DD877F2009C9E49 /* CaptureLooper.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,7 +273,7 @@
 		C01FCF4B08A954540054247B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
@@ -297,6 +299,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "org.libcinder.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = DoingDancing;
 				SYMROOT = ./build;
+				VALID_ARCHS = "i386 x86_64";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -304,7 +307,7 @@
 		C01FCF4C08A954540054247B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -332,6 +335,7 @@
 				PRODUCT_NAME = DoingDancing;
 				STRIP_INSTALLED_PRODUCT = YES;
 				SYMROOT = ./build;
+				VALID_ARCHS = "i386 x86_64";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -340,7 +344,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CINDER_PATH = ../../..;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -352,6 +356,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../blocks/QuickTime/include";
+				VALID_ARCHS = "x86_64 i386";
 			};
 			name = Debug;
 		};
@@ -359,7 +364,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CINDER_PATH = ../../..;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -369,6 +374,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				SDKROOT = macosx;
 				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../blocks/QuickTime/include";
+				VALID_ARCHS = "x86_64 i386";
 			};
 			name = Release;
 		};
