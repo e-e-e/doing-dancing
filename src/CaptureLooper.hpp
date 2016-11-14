@@ -1,12 +1,11 @@
-#pragma once
 
-#ifndef DoingDanceingApp_h
-#define DoingDanceingApp_h
+#ifndef CaptureLooper_hpp
+#define CaptureLooper_hpp
+
+#include <stdio.h>
 
 #include "cinder/app/App.h"
-#include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
-
 #include "cinder/Capture.h"
 #include "cinder/qtime/AvfWriter.h"
 #include "cinder/qtime/QuickTimeGl.h"
@@ -15,62 +14,55 @@
 #include "EDSDKTypes.h"
 #include "EDSDKErrors.h"
 
-#include "CaptureLooper.hpp"
-
-#define EOS_USE true
-#define RECORDING_TIME 90
-#define OFF_TIME 30
-
+#define CL_NO_CAPTURE 0
+#define CL_EDS_CAPTURE 1
+#define CL_DEFAULT_CAPTURE 2
 
 using namespace ci;
-using namespace ci::app;
-using namespace std;
 
-class DoingDancingApp : public App {
+class CaptureLooper {
     
-public:
+    const fs::path          saveFolder;
+    u_int8_t                capture_state = 0;
     
-    static void prepareSettings( Settings *settings );
-    
-    void setup() override;
-    void keyDown( KeyEvent event ) override;
-    void update() override;
-    void draw() override;
-    void cleanup() override;
-    
-private:
-    
-    CaptureLooper*          capture;
-    Boolean                 recording = false;
+    bool                    recording = false;
     u_int8_t                recording_count = 0;
     u_int32_t               recording_timer = 0;
-    fs::path                saveFolder;
     
-#if EOS_USE == true
-    EdsError err;
-    EdsCameraRef camera;
-    bool isSDKLoaded;
-#else
+    EdsError                err;
+    EdsCameraRef            camera;
+    bool                    isSDKLoaded;
+    
     CaptureRef              mCapture;
-#endif
     
     qtime::MovieWriterRef   mMovieExporter;
     qtime::MovieGlRef		mMovie;
     
     gl::TextureRef			mFrameTexture;
     gl::TextureRef          mTexture;
-
-    void printDevices();
     
-    void startVideoRecording();
-    void updateVideoRecording();
-    void stopVideoRecording();
-    void loadMovie(const fs::path &moviePath);
+public:
+    
+    CaptureLooper(fs::path);
+    ~CaptureLooper();
+    
+    inline bool isOK() { return (capture_state != CL_NO_CAPTURE); }
+    
+    void update(const Surface&);
+    void draw(const Area&);
+    
+    void start();
+    void stop();
+    
+private:
     
     fs::path getVideoRecordingPath (int);
     
-#if EOS_USE == true
+    inline void loadMovie(const fs::path &moviePath);
     
+    void setupDefaultCapture();
+    
+    EdsError setupEdsCamera();
     EdsError getFirstCamera(EdsCameraRef *camera);
     
     static EdsError EDSCALLBACK handlePropertyEvent( EdsPropertyEvent, EdsPropertyID, EdsUInt32, EdsVoid *);
@@ -80,11 +72,6 @@ private:
     EdsError endLiveview();
     EdsError downloadEvfData();
     
-#endif
-    
 };
 
-
-
-
-#endif /* DoingDanceingApp_h */
+#endif /* CaptureLooper_hpp */
