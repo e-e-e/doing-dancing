@@ -16,9 +16,9 @@
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
 		00B9955A1B128DF400A5C623 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995581B128DF400A5C623 /* IOKit.framework */; };
 		00B9955B1B128DF400A5C623 /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995591B128DF400A5C623 /* IOSurface.framework */; };
-		43BB36421DD9BFE8005C5F7C /* VoiceLooper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43BB36401DD9BFE8005C5F7C /* VoiceLooper.cpp */; };
 		43BB36471DD9C207005C5F7C /* CaptureLooper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43BB36431DD9C207005C5F7C /* CaptureLooper.cpp */; };
 		43BB36481DD9C207005C5F7C /* VoiceLooper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43BB36441DD9C207005C5F7C /* VoiceLooper.cpp */; };
+		43BB364A1DD9C307005C5F7C /* DoingDancingApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43BB36491DD9C307005C5F7C /* DoingDancingApp.cpp */; };
 		43BFDA3A1DD87458009C9E49 /* DPP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43C397B31DD86F690030BB9A /* DPP.framework */; };
 		43BFDA3B1DD87458009C9E49 /* EDSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 43C397B41DD86F690030BB9A /* EDSDK.framework */; };
 		43C397BA1DD871520030BB9A /* DPP.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 43C397B31DD86F690030BB9A /* DPP.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -59,11 +59,11 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		435987571DD32BA90004033F /* DoingDancingApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DoingDancingApp.h; path = ../include/DoingDancingApp.h; sourceTree = "<group>"; };
-		43BB36401DD9BFE8005C5F7C /* VoiceLooper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VoiceLooper.cpp; path = ../../AudioExperiment/src/VoiceLooper.cpp; sourceTree = "<group>"; };
 		43BB36431DD9C207005C5F7C /* CaptureLooper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CaptureLooper.cpp; path = ../src/CaptureLooper.cpp; sourceTree = "<group>"; };
 		43BB36441DD9C207005C5F7C /* VoiceLooper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = VoiceLooper.cpp; path = ../src/VoiceLooper.cpp; sourceTree = "<group>"; };
 		43BB36451DD9C207005C5F7C /* VoiceLooper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = VoiceLooper.hpp; path = ../src/VoiceLooper.hpp; sourceTree = "<group>"; };
 		43BB36461DD9C207005C5F7C /* CaptureLooper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = CaptureLooper.hpp; path = ../src/CaptureLooper.hpp; sourceTree = "<group>"; };
+		43BB36491DD9C307005C5F7C /* DoingDancingApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DoingDancingApp.cpp; path = ../src/DoingDancingApp.cpp; sourceTree = "<group>"; };
 		43C397B31DD86F690030BB9A /* DPP.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = DPP.framework; sourceTree = "<group>"; };
 		43C397B41DD86F690030BB9A /* EDSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = EDSDK.framework; sourceTree = "<group>"; };
 		43C397B71DD86FB00030BB9A /* EDSDK.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDSDK.h; path = ../include/EDSDK.h; sourceTree = "<group>"; };
@@ -112,11 +112,11 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				43BB36491DD9C307005C5F7C /* DoingDancingApp.cpp */,
 				43BB36431DD9C207005C5F7C /* CaptureLooper.cpp */,
+				43BB36461DD9C207005C5F7C /* CaptureLooper.hpp */,
 				43BB36441DD9C207005C5F7C /* VoiceLooper.cpp */,
 				43BB36451DD9C207005C5F7C /* VoiceLooper.hpp */,
-				43BB36461DD9C207005C5F7C /* CaptureLooper.hpp */,
-				43BB36401DD9BFE8005C5F7C /* VoiceLooper.cpp */,
 				435987571DD32BA90004033F /* DoingDancingApp.h */,
 			);
 			name = Source;
@@ -267,9 +267,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				43BB36421DD9BFE8005C5F7C /* VoiceLooper.cpp in Sources */,
 				43BB36481DD9C207005C5F7C /* VoiceLooper.cpp in Sources */,
 				43BB36471DD9C207005C5F7C /* CaptureLooper.cpp in Sources */,
+				43BB364A1DD9C307005C5F7C /* DoingDancingApp.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
