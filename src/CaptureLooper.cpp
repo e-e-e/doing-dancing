@@ -104,7 +104,7 @@ void CaptureLooper::start() {
     .jpegQuality( 0.09f )
     .averageBitsPerSecond( 10000000 );
     
-    mMovieExporter = qtime::MovieWriter::create( path, getWindowWidth(), getWindowHeight(), format );
+    mMovieExporter = qtime::MovieWriter::create( path, width, height, format );
 
 }
 
@@ -141,7 +141,7 @@ void CaptureLooper::loadMovie( const fs::path &moviePath ) {
 
 void CaptureLooper::setupDefaultCapture() {
     try {
-        mCapture = Capture::create( 640, 480 );
+        mCapture = Capture::create( width, height );
         mCapture->start();
         capture_state = CL_DEFAULT_CAPTURE;
     } catch( ci::Exception &exc ) {
@@ -311,7 +311,7 @@ EdsError CaptureLooper::downloadEvfData() {
             
             BufferRef buffer = Buffer::create(ImageData,DataSize);
             mTexture = gl::Texture::create( loadImage( DataSourceBuffer::create(buffer), ImageSource::Options(), "jpg" ), gl::Texture::Format().loadTopDown() );
-            //printf("%i,%i\n",mTexture->getWidth(), mTexture->getHeight());
+//            printf("%i,%i\n",mTexture->getWidth(), mTexture->getHeight());
             
         }
     }
