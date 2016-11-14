@@ -37,12 +37,16 @@ public:
     VoiceLooper();
     VoiceLooper(int);
     
+    inline bool isStopped() const { return recordingTimer.isStopped(); }
+    
+    void start();
     void setup();
     void update();
 
+
 private:
     
-    void reset();
+    
     
 };
 

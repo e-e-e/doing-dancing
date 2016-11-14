@@ -60,27 +60,20 @@ void VoiceLooper::setup() {
     input->enable();
     ctx->enable();
     
-    bufferPlayer->start();
-    audioRecorder->start();
-    recordingTimer.start();
 }
 
 void VoiceLooper::update() {
-    float time = recordingTimer.getSeconds();
-    if(time > duration) {
+    if( !isStopped() && recordingTimer.getSeconds() > duration ) {
         recordingTimer.stop();
-        reset();
+        bufferPlayer->stop();
+        audioRecorder->stop();
     };
 }
 
-void VoiceLooper::reset() {
-    
-    bufferPlayer->stop();
-    audioRecorder->stop();
-    
+void VoiceLooper::start() {
     recordingCount++;
     console() << "Recording count:" << recordingCount << endl;
-    float ratio = 1.0 / float(recordingCount+1);
+    float ratio = 1.0 / float(recordingCount);
     previousNoise->setValue(1.0 - ratio);
     currentNoise->setValue(ratio);
     

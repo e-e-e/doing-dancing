@@ -6,14 +6,20 @@
 #include "cinder/app/App.h"
 
 #include "CaptureLooper.hpp"
+#include "VoiceLooper.hpp"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
 
+#define DOING_DANCING_VOICE 0
+#define DOING_DANCING_VIDEO 1
+
 class DoingDancingApp : public App {
     
-    CaptureLooper*          capture;
+    u_int8_t        state;
+    CaptureLooper*  capture;
+    VoiceLooper*    voice;
     
 public:
     

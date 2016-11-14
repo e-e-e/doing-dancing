@@ -5,12 +5,11 @@
 
 using namespace std;
 
-CaptureLooper::CaptureLooper(fs::path path) : saveFolder(path) {
-    
+CaptureLooper::CaptureLooper(fs::path path, const u_int32_t duration )
+    : saveFolder(path), duration(duration)
+{
     EdsError err = setupEdsCamera();
-    
     if( err != EDS_ERR_OK ) setupDefaultCapture();
-    
 }
 
 CaptureLooper::~CaptureLooper() {
@@ -62,14 +61,14 @@ void CaptureLooper::update(const Surface& surface) {
             mMovieExporter->addFrame( surface );
         }
     }
-        
-//        recording_timer++;
-//        if(recording_timer >= RECORDING_TIME) {
-//            stopVideoRecording();
-//        }
+    
+    if(recording) {
+        timer++;
+        if( timer >= duration ) stop();
+    }
 }
 
-void CaptureLooper::draw(const Area& windowBounds) {
+void CaptureLooper::draw(const Area& windowBounds) const {
     Rectf centeredRect;
     if(mFrameTexture) {
         centeredRect = Rectf( mFrameTexture->getBounds() ).getCenteredFit( windowBounds, true );
@@ -80,19 +79,22 @@ void CaptureLooper::draw(const Area& windowBounds) {
         float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
         centeredRect = Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
         gl::color(1.0, 1.0, 1.0, alpha);
-        gl::draw( mTexture );
+        gl::draw( mTexture, centeredRect );
     }
 }
 
 void CaptureLooper::start() {
    
+    if( capture_state == CL_EDS_CAPTURE )
+        keepAlive();
+    
     if(recording_count>0) {
         fs::path movie_path = getVideoRecordingPath(recording_count);
         loadMovie(movie_path);
     }
     
     recording = true;
-    recording_timer = 0;
+    timer = 0;
     recording_count++;
     
     fs::path path = getVideoRecordingPath(recording_count);
@@ -115,9 +117,10 @@ void CaptureLooper::stop() {
     }
     mMovieExporter->finish();
     mMovieExporter.reset();
-    recording_timer = 0;
+    timer = 0;
     recording = false;
 }
+
 fs::path CaptureLooper::getVideoRecordingPath (int i) {
     fs::path path = fs::path(saveFolder);
     path += "/doing_dancing_" + to_string(i) + ".mov";
@@ -146,6 +149,7 @@ void CaptureLooper::setupDefaultCapture() {
         capture_state = CL_DEFAULT_CAPTURE;
     } catch( ci::Exception &exc ) {
         CI_LOG_EXCEPTION( "Failed to init capture ", exc );
+        cout << "PROBLEM " << exc.what() << endl;
         capture_state = CL_NO_CAPTURE;
     }
 }
@@ -271,6 +275,16 @@ EdsError CaptureLooper::endLiveview() {
     {
         device &= ~kEdsEvfOutputDevice_PC;
         err = EdsSetPropertyData(camera, kEdsPropID_Evf_OutputDevice, 0 , sizeof(device), &device);
+    }
+    return err;
+}
+
+EdsError CaptureLooper::keepAlive() {
+    EdsError err = EDS_ERR_OK;
+    EdsUInt32 inParam = 0;
+    err = EdsSendCommand(camera, kEdsCameraCommand_ExtendShutDownTimer, inParam);
+    if( err != EDS_ERR_OK ) {
+        cout << "THERE WAS A PROBLEM KEEPING ALIVE! " << err << endl;
     }
     return err;
 }

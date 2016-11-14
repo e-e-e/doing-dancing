@@ -19,22 +19,31 @@ void DoingDancingApp::prepareSettings( App::Settings *settings )
 
 void DoingDancingApp::setup() {
     
+    int seconds = 3;
     fs::path path = getFolderPath(); //getSaveFilePath();
     if( path.empty() ) quit();
     
-    capture = new CaptureLooper(path);
+    capture = new CaptureLooper(path, 30*seconds);
+    if(!capture->isOK()) {
+        console() << "THERE WAS A PROBLEM STARTING VIDEO CAPTURE!" << endl;
+        quit();
+        return;
+    }
     
+    voice = new VoiceLooper(seconds);
+    voice->start();
+    state = DOING_DANCING_VOICE;
 }
 
 void DoingDancingApp::cleanup () {
-    if( capture )
-        delete capture;
+    if( capture )   delete capture;
 }
 
 void DoingDancingApp::keyDown( KeyEvent event ) {
     const char key = event.getChar();
     switch (key) {
         case ' ':
+//            if( !capture->isRecording() ) capture->start();
             break;
         default:
             break;
@@ -43,13 +52,24 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
 
 void DoingDancingApp::update() {
     //pass across reference to window surface add to recording
-    capture->update(copyWindowSurface());
+    if(capture->isRecording()) capture->update(copyWindowSurface());
+    voice->update();
+    
+    if( voice->isStopped() && !capture->isRecording()) {
+        if(state == DOING_DANCING_VOICE) {
+            capture->start();
+            state = DOING_DANCING_VIDEO;
+        } else {
+            voice->start();
+            state = DOING_DANCING_VOICE;
+        }
+    }
     
 }
 
 void DoingDancingApp::draw() {
     gl::clear( Color( 0, 0, 0 ) );
-    capture->draw( getWindowBounds() );
+    if(capture->isRecording()) capture->draw( getWindowBounds() );
 }
 
 CINDER_APP( DoingDancingApp, RendererGl, DoingDancingApp::prepareSettings )
