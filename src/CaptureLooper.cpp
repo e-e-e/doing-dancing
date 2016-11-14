@@ -35,36 +35,41 @@ CaptureLooper::~CaptureLooper() {
 }
 
 void CaptureLooper::update(const Surface& surface) {
-    if( capture_state == CL_EDS_CAPTURE ||
-       (capture_state == CL_DEFAULT_CAPTURE && mCapture && mCapture->checkNewFrame()))
-    {
-        // update capture texture
-        if( capture_state == CL_DEFAULT_CAPTURE ) {
-            // Capture images come back as top-down, and it's more efficient to keep them that way
-            if( ! mTexture )
-                mTexture = gl::Texture::create( *mCapture->getSurface(), gl::Texture::Format().loadTopDown() );
-            else
-                mTexture->update( *mCapture->getSurface() );
-        } else {
-            downloadEvfData();
-        }
-        
-        if( mMovie ) {
-            mMovie->stepForward();
-            if(mMovie->isDone()) {
-                mMovie->seekToStart();
-            }
-            mFrameTexture = mMovie->getTexture();
-        }
-        
-        if( mMovieExporter && recording ) {
-            mMovieExporter->addFrame( surface );
-        }
-    }
     
-    if(recording) {
-        timer++;
-        if( timer >= duration ) stop();
+    if(!mMovie || mMovie->isPlayable()) {
+    
+        if( capture_state == CL_EDS_CAPTURE ||
+           (capture_state == CL_DEFAULT_CAPTURE && mCapture && mCapture->checkNewFrame()))
+        {
+            // update capture texture
+            if( capture_state == CL_DEFAULT_CAPTURE ) {
+                // Capture images come back as top-down, and it's more efficient to keep them that way
+                if( ! mTexture )
+                    mTexture = gl::Texture::create( *mCapture->getSurface(), gl::Texture::Format().loadTopDown() );
+                else
+                    mTexture->update( *mCapture->getSurface() );
+            } else {
+                downloadEvfData();
+            }
+            
+            if( mMovie ) {
+                if(mMovie->isDone()) {
+                    mMovie->seekToStart();
+                }
+                mFrameTexture = mMovie->getTexture();
+                mMovie->stepForward();
+                
+            }
+            
+            if( mMovieExporter && recording && timer > 0) {
+                mMovieExporter->addFrame( surface );
+            }
+        }
+        
+        if(recording) {
+            timer++;
+            if( timer >= duration ) stop();
+        }
     }
 }
 

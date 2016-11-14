@@ -30,7 +30,7 @@ void DoingDancingApp::setup() {
         return;
     }
     
-    voice = new VoiceLooper(seconds);
+    voice = new VoiceLooper(seconds/3);
     voice->start();
     state = DOING_DANCING_VOICE;
 }
