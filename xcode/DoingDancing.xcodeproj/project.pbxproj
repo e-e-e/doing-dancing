@@ -112,12 +112,12 @@
 		080E96DDFE201D6D7F000001 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				435987571DD32BA90004033F /* DoingDancingApp.h */,
 				43BB36491DD9C307005C5F7C /* DoingDancingApp.cpp */,
 				43BB36431DD9C207005C5F7C /* CaptureLooper.cpp */,
 				43BB36461DD9C207005C5F7C /* CaptureLooper.hpp */,
 				43BB36441DD9C207005C5F7C /* VoiceLooper.cpp */,
 				43BB36451DD9C207005C5F7C /* VoiceLooper.hpp */,
-				435987571DD32BA90004033F /* DoingDancingApp.h */,
 			);
 			name = Source;
 			sourceTree = "<group>";
