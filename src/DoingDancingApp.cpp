@@ -19,7 +19,7 @@ void DoingDancingApp::prepareSettings( App::Settings *settings )
 
 void DoingDancingApp::setup() {
     
-    int seconds = 3;
+    int seconds = 10;
     fs::path path = getFolderPath(); //getSaveFilePath();
     if( path.empty() ) quit();
     
@@ -30,7 +30,7 @@ void DoingDancingApp::setup() {
         return;
     }
     
-    voice = new VoiceLooper(seconds/3);
+    voice = new VoiceLooper(seconds);
     voice->start();
     state = DOING_DANCING_VOICE;
 }

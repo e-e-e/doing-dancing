@@ -23,9 +23,9 @@ using namespace ci;
 class CaptureLooper {
     
     const fs::path          saveFolder;
-    const u_int32_t         width = 1056;
-    const u_int32_t         height = 704;
     const u_int32_t         duration;
+    u_int32_t               width = 1056;
+    u_int32_t               height = 704;
     u_int8_t                capture_state = 0;
     
     bool                    recording = false;
@@ -39,10 +39,13 @@ class CaptureLooper {
     CaptureRef              mCapture;
     
     qtime::MovieWriterRef   mMovieExporter;
-    qtime::MovieGlRef		mMovie;
+    qtime::MovieSurfaceRef	mMovie;
     
     gl::TextureRef			mFrameTexture;
     gl::TextureRef          mTexture;
+    
+    SurfaceRef              mMoviePixels;
+    SurfaceRef              mLivePixels;
     
 public:
     CaptureLooper(fs::path path, const u_int32_t duration = 90);
