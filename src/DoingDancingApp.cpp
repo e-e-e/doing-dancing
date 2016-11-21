@@ -12,7 +12,7 @@ void DoingDancingApp::prepareSettings( App::Settings *settings )
     settings->setWindowSize( 1056,704 );
     settings->setFrameRate( 30 );
     settings->setHighDensityDisplayEnabled( false );
-    settings->setFullScreen( false );
+    settings->setFullScreen( true );
     settings->setResizable( false );
     
 }
@@ -53,7 +53,13 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
 void DoingDancingApp::update() {
     
     //pass across reference to window surface add to recording
-    if(capture->isRecording()) capture->update(copyWindowSurface());
+    if(capture->isRecording()) {
+        Area copy = capture->drawingBounds(getWindowBounds());
+        cout << copy << endl;
+        capture->update(copyWindowSurface(copy));
+        
+            
+    }
     voice->update();
     
     if( voice->isStopped() && !capture->isRecording()) {

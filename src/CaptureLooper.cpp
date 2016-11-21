@@ -2,6 +2,7 @@
 #include "CaptureLooper.hpp"
 
 #include "cinder/Log.h"
+#include "cinder/ip/Resize.h"
 
 using namespace std;
 
@@ -38,7 +39,7 @@ CaptureLooper::~CaptureLooper() {
 
 void CaptureLooper::update(const Surface& surface) {
     
-    if(!mMovie || mMovie->getSurface()) {
+    if(!mMovie || (mMovie->isPlayable() || mMovie->checkPlaythroughOk())) {
     
         if( capture_state == CL_EDS_CAPTURE ||
            (capture_state == CL_DEFAULT_CAPTURE && mCapture && mCapture->checkNewFrame()))
@@ -47,6 +48,11 @@ void CaptureLooper::update(const Surface& surface) {
             if( capture_state == CL_DEFAULT_CAPTURE ) {
                 
                 mLivePixels = mCapture->getSurface();
+                if( ! mTexture )
+                    mTexture = gl::Texture::create( *mLivePixels, gl::Texture::Format().loadTopDown() );
+                else
+                    mTexture->update( *mLivePixels );
+
                 // Capture images come back as top-down, and it's more efficient to keep them that way
                 
             } else {
@@ -55,41 +61,42 @@ void CaptureLooper::update(const Surface& surface) {
             
             if( mMovie ) {
                 
-                SurfaceRef mMoviePixels = mMovie->getSurface();
+                mFrameTexture = mMovie->getTexture();
 
-                if( ! mFrameTexture )
-                    mFrameTexture = gl::Texture::create( *mMoviePixels, gl::Texture::Format().loadTopDown() );
-                else
-                    mFrameTexture->update( *mMoviePixels );
+//                if( ! mFrameTexture )
+//                    mFrameTexture = gl::Texture::create( *mMoviePixels, gl::Texture::Format().loadTopDown() );
+//                else
+//                    mFrameTexture->update( *mMoviePixels );
                
-                cout << "MOVIE-" << mMoviePixels->getSize() << endl;
-                cout << "LIVE-" << mLivePixels->getSize() << endl;
-                Surface::Iter inputIter( mMoviePixels->getIter() );
-                Surface::Iter outputIter( mLivePixels->getIter() );
-                double alpha = (recording_count > 0) ? 1.0 / double(recording_count) : 1.0;
-                double inverse_alpha = 1.0 - alpha;
-                while( inputIter.line() ) {
-                    outputIter.line();
-                    while( inputIter.pixel() ) {
-                        outputIter.pixel();
-                        outputIter.r() = constrain<int32_t>(  (double(inputIter.r()) * inverse_alpha) + (double(outputIter.r()) * (alpha)), 0, 255 );
-                        outputIter.b() = constrain<int32_t>( (double(inputIter.b()) * inverse_alpha) + (double(outputIter.b()) * (alpha)), 0, 255 );
-                        outputIter.g() = constrain<int32_t>( (double(inputIter.g()) * inverse_alpha) + (double(outputIter.g()) * (alpha)), 0, 255 );
-                    }
-                }
+//                cout << "MOVIE-" << mMoviePixels->getSize() << endl;
+//                cout << "LIVE-" << mLivePixels->getSize() << endl;
+//                Surface::Iter inputIter( mMoviePixels->getIter() );
+//                Surface::Iter outputIter( mLivePixels->getIter() );
+//                double alpha = (recording_count > 0) ? 1.0 / double(recording_count) : 1.0;
+//                double inverse_alpha = 1.0 - alpha;
+//                while( inputIter.line() ) {
+//                    outputIter.line();
+//                    while( inputIter.pixel() ) {
+//                        outputIter.pixel();
+//                        outputIter.r() = constrain<int32_t>(  (double(inputIter.r()) * inverse_alpha) + (double(outputIter.r()) * (alpha)), 0, 255 );
+//                        outputIter.b() = constrain<int32_t>( (double(inputIter.b()) * inverse_alpha) + (double(outputIter.b()) * (alpha)), 0, 255 );
+//                        outputIter.g() = constrain<int32_t>( (double(inputIter.g()) * inverse_alpha) + (double(outputIter.g()) * (alpha)), 0, 255 );
+//                    }
+//                }
                 mMovie->stepForward();
                 if(mMovie->isDone()) {
                     mMovie->seekToStart();
                 }
             }
             
-            if( ! mTexture )
-                mTexture = gl::Texture::create( *mLivePixels, gl::Texture::Format().loadTopDown() );
-            else
-                mTexture->update( *mLivePixels );
+//            if( ! mTexture )
+//                mTexture = gl::Texture::create( *mLivePixels, gl::Texture::Format().loadTopDown() );
+//            else
+//                mTexture->update( *mLivePixels );
             
             if( mMovieExporter && recording ) {
-                mMovieExporter->addFrame( *mLivePixels );
+                
+                mMovieExporter->addFrame( ip::resizeCopy (surface, surface.getBounds(), mMovieExporter->getSize()) );
             }
         
             if(recording) {
@@ -112,13 +119,13 @@ void CaptureLooper::update(const Surface& surface) {
 
 void CaptureLooper::draw(const Area& windowBounds) const {
     Rectf centeredRect;
-//    if(mFrameTexture) {
-//        centeredRect = Rectf( mFrameTexture->getBounds() ).getCenteredFit( windowBounds, true );
-//        gl::color(1.0, 1.0, 1.0, 1.0);
-//        gl::draw( mFrameTexture, centeredRect );
-//    }
+    if(mFrameTexture) {
+        centeredRect = Rectf( mFrameTexture->getBounds() ).getCenteredFit( windowBounds, true );
+        gl::color(1.0, 1.0, 1.0, 1.0);
+        gl::draw( mFrameTexture, centeredRect );
+    }
     if( mTexture ) {
-        float alpha = 1.0;//(recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
+        float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
         centeredRect = Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
         gl::color(1.0, 1.0, 1.0, alpha);
         gl::draw( mTexture, centeredRect );
@@ -154,6 +161,7 @@ void CaptureLooper::start() {
         .jpegQuality( 0.09f )
         .averageBitsPerSecond( 10000000 );
     
+    
     mMovieExporter = qtime::MovieWriter::create( path, width, height, format );
 
 }
@@ -180,7 +188,7 @@ fs::path CaptureLooper::getVideoRecordingPath (int i) {
 void CaptureLooper::loadMovie( const fs::path &moviePath ) {
     try {
         cout << "loading movie " << moviePath << endl;
-        mMovie = qtime::MovieSurface::create( moviePath );
+        mMovie = qtime::MovieGl::create( moviePath );
         cout  << "framerate: " << mMovie->getFramerate() << endl;
     }
     catch( Exception &exc ) {

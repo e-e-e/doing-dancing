@@ -39,7 +39,8 @@ class CaptureLooper {
     CaptureRef              mCapture;
     
     qtime::MovieWriterRef   mMovieExporter;
-    qtime::MovieSurfaceRef	mMovie;
+//    qtime::MovieSurfaceRef	mMovie;
+    qtime::MovieGlRef       mMovie;
     
     gl::TextureRef			mFrameTexture;
     gl::TextureRef          mTexture;
@@ -53,6 +54,12 @@ public:
     
     inline bool isOK() const { return (capture_state != CL_NO_CAPTURE); }
     inline bool isRecording() const { return recording; }
+    inline Area drawingBounds (const Area& windowBounds) {
+        if(mTexture) {
+            return (Area) Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
+        }
+        return Area::zero();
+    };
     
     void update(const Surface&);
     void draw (const Area&) const;
