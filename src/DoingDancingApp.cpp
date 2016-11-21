@@ -19,7 +19,7 @@ void DoingDancingApp::prepareSettings( App::Settings *settings )
 
 void DoingDancingApp::setup() {
     
-    int seconds = 10;
+    int seconds = 2;
     fs::path path = getFolderPath(); //getSaveFilePath();
     if( path.empty() ) quit();
     
@@ -51,11 +51,13 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
 }
 
 void DoingDancingApp::update() {
+    
     //pass across reference to window surface add to recording
     if(capture->isRecording()) capture->update(copyWindowSurface());
     voice->update();
     
     if( voice->isStopped() && !capture->isRecording()) {
+        cout << getAverageFps() << endl;
         if(state == DOING_DANCING_VOICE) {
             capture->start();
             state = DOING_DANCING_VIDEO;
