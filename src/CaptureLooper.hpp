@@ -24,6 +24,7 @@ class CaptureLooper {
     
     const fs::path          saveFolder;
     const u_int32_t         duration;
+    const Area              windowBounds;
     u_int32_t               width = 1056;
     u_int32_t               height = 704;
     u_int8_t                capture_state = 0;
@@ -49,25 +50,31 @@ class CaptureLooper {
     SurfaceRef              mLivePixels;
     
 public:
-    CaptureLooper(fs::path path, const u_int32_t duration = 90);
+    CaptureLooper(const Area& windowBounds, fs::path path, const u_int32_t duration = 90);
     ~CaptureLooper();
     
     inline bool isOK() const { return (capture_state != CL_NO_CAPTURE); }
     inline bool isRecording() const { return recording; }
-    inline Area drawingBounds (const Area& windowBounds) {
+    inline Area drawingBounds () const {
         if(mTexture) {
             return (Area) Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
         }
         return Area::zero();
     };
     
+    void update();
     void update(const Surface&);
-    void draw (const Area&) const;
+    void draw () const;
     void start();
     
 private:
     
     void stop();
+    inline bool captureReady() const {
+        return ( capture_state == CL_EDS_CAPTURE ||
+                (capture_state == CL_DEFAULT_CAPTURE &&
+                 mCapture && mCapture->checkNewFrame()));
+    }
     
     fs::path getVideoRecordingPath (int);
     

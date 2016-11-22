@@ -6,8 +6,8 @@
 
 using namespace std;
 
-CaptureLooper::CaptureLooper(fs::path path, const u_int32_t duration )
-    : saveFolder(path), duration(duration)
+CaptureLooper::CaptureLooper(const Area& windowBounds, fs::path path, const u_int32_t duration )
+    : windowBounds(windowBounds), saveFolder(path), duration(duration)
 {
     EdsError err = setupEdsCamera();
     if( err != EDS_ERR_OK ) {
@@ -37,13 +37,27 @@ CaptureLooper::~CaptureLooper() {
     mMovieExporter.reset();
 }
 
+void CaptureLooper::update() {
+    if( captureReady() )
+    {
+        if( capture_state == CL_DEFAULT_CAPTURE ) {
+            mLivePixels = mCapture->getSurface();
+            if( ! mTexture )
+                mTexture = gl::Texture::create( *mLivePixels, gl::Texture::Format().loadTopDown() );
+            else
+                mTexture->update( *mLivePixels );
+            
+        } else {
+            downloadEvfData();
+        }
+    }
+}
+
 void CaptureLooper::update(const Surface& surface) {
     
     if(!mMovie || (mMovie->isPlayable() || mMovie->checkPlaythroughOk())) {
     
-        if( capture_state == CL_EDS_CAPTURE ||
-           (capture_state == CL_DEFAULT_CAPTURE && mCapture && mCapture->checkNewFrame()))
-        {
+        if( captureReady() ) {
             // update capture texture
             if( capture_state == CL_DEFAULT_CAPTURE ) {
                 
@@ -52,51 +66,18 @@ void CaptureLooper::update(const Surface& surface) {
                     mTexture = gl::Texture::create( *mLivePixels, gl::Texture::Format().loadTopDown() );
                 else
                     mTexture->update( *mLivePixels );
-
-                // Capture images come back as top-down, and it's more efficient to keep them that way
                 
             } else {
                 downloadEvfData();
             }
             
             if( mMovie ) {
-                
                 mFrameTexture = mMovie->getTexture();
-
-//                if( ! mFrameTexture )
-//                    mFrameTexture = gl::Texture::create( *mMoviePixels, gl::Texture::Format().loadTopDown() );
-//                else
-//                    mFrameTexture->update( *mMoviePixels );
-               
-//                cout << "MOVIE-" << mMoviePixels->getSize() << endl;
-//                cout << "LIVE-" << mLivePixels->getSize() << endl;
-//                Surface::Iter inputIter( mMoviePixels->getIter() );
-//                Surface::Iter outputIter( mLivePixels->getIter() );
-//                double alpha = (recording_count > 0) ? 1.0 / double(recording_count) : 1.0;
-//                double inverse_alpha = 1.0 - alpha;
-//                while( inputIter.line() ) {
-//                    outputIter.line();
-//                    while( inputIter.pixel() ) {
-//                        outputIter.pixel();
-//                        outputIter.r() = constrain<int32_t>(  (double(inputIter.r()) * inverse_alpha) + (double(outputIter.r()) * (alpha)), 0, 255 );
-//                        outputIter.b() = constrain<int32_t>( (double(inputIter.b()) * inverse_alpha) + (double(outputIter.b()) * (alpha)), 0, 255 );
-//                        outputIter.g() = constrain<int32_t>( (double(inputIter.g()) * inverse_alpha) + (double(outputIter.g()) * (alpha)), 0, 255 );
-//                    }
-//                }
                 mMovie->stepForward();
-                if(mMovie->isDone()) {
-                    mMovie->seekToStart();
-                }
             }
             
-//            if( ! mTexture )
-//                mTexture = gl::Texture::create( *mLivePixels, gl::Texture::Format().loadTopDown() );
-//            else
-//                mTexture->update( *mLivePixels );
-            
             if( mMovieExporter && recording ) {
-                
-                mMovieExporter->addFrame( ip::resizeCopy (surface, surface.getBounds(), mMovieExporter->getSize()) );
+                mMovieExporter->addFrame( surface );
             }
         
             if(recording) {
@@ -117,7 +98,7 @@ void CaptureLooper::update(const Surface& surface) {
     }
 }
 
-void CaptureLooper::draw(const Area& windowBounds) const {
+void CaptureLooper::draw() const {
     Rectf centeredRect;
     if(mFrameTexture) {
         centeredRect = Rectf( mFrameTexture->getBounds() ).getCenteredFit( windowBounds, true );
@@ -148,12 +129,6 @@ void CaptureLooper::start() {
     
     fs::path path = getVideoRecordingPath(recording_count);
     cout << "saving to " << path << endl;
-
-    if(mCapture) {
-        ivec2 size = mCapture->getSurface()->getSize();
-        width = size.x;
-        height = size.y;
-    }
     
     auto format = qtime::MovieWriter::Format()
         .codec( qtime::MovieWriter::H264 )
@@ -161,8 +136,8 @@ void CaptureLooper::start() {
         .jpegQuality( 0.09f )
         .averageBitsPerSecond( 10000000 );
     
-    
-    mMovieExporter = qtime::MovieWriter::create( path, width, height, format );
+    Area area = drawingBounds();
+    mMovieExporter = qtime::MovieWriter::create( path, area.getWidth(),area.getHeight(), format );
 
 }
 
@@ -189,10 +164,10 @@ void CaptureLooper::loadMovie( const fs::path &moviePath ) {
     try {
         cout << "loading movie " << moviePath << endl;
         mMovie = qtime::MovieGl::create( moviePath );
-        cout  << "framerate: " << mMovie->getFramerate() << endl;
-    }
-    catch( Exception &exc ) {
-        cout << "Exception caught trying to load the movie from path: " << moviePath << ", what: " << exc.what() << endl;
+    } catch( Exception &exc ) {
+        cout << "Exception caught trying to load the movie from path: "
+            << moviePath << ", what: " << exc.what()
+            << endl;
         mMovie.reset();
     }
     mFrameTexture.reset();
@@ -380,7 +355,7 @@ EdsError CaptureLooper::downloadEvfData() {
             EdsGetLength(stream, &DataSize);
             
             BufferRef buffer = Buffer::create(ImageData,DataSize);
-            mLivePixels = Surface::create( loadImage( DataSourceBuffer::create(buffer), ImageSource::Options(), "jpg" ));
+            mTexture = gl::Texture::create( loadImage( DataSourceBuffer::create(buffer), ImageSource::Options(), "jpg" ));
 //            printf("%i,%i\n",mTexture->getWidth(), mTexture->getHeight());
             
         }

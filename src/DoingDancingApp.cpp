@@ -23,7 +23,7 @@ void DoingDancingApp::setup() {
     fs::path path = getFolderPath(); //getSaveFilePath();
     if( path.empty() ) quit();
     
-    capture = new CaptureLooper(path, 30*seconds);
+    capture = new CaptureLooper(getWindowBounds(), path, 30*seconds);
     if(!capture->isOK()) {
         console() << "THERE WAS A PROBLEM STARTING VIDEO CAPTURE!" << endl;
         quit();
@@ -54,11 +54,10 @@ void DoingDancingApp::update() {
     
     //pass across reference to window surface add to recording
     if(capture->isRecording()) {
-        Area copy = capture->drawingBounds(getWindowBounds());
-        cout << copy << endl;
+        Area copy = capture->drawingBounds();
         capture->update(copyWindowSurface(copy));
-        
-            
+    } else {
+        capture->update();
     }
     voice->update();
     
@@ -77,7 +76,7 @@ void DoingDancingApp::update() {
 
 void DoingDancingApp::draw() {
     gl::clear( Color( 0, 0, 0 ) );
-    if(capture->isRecording()) capture->draw( getWindowBounds() );
+    if(capture->isRecording()) capture->draw();
 }
 
 CINDER_APP( DoingDancingApp, RendererGl, DoingDancingApp::prepareSettings )
