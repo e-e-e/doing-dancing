@@ -2,7 +2,7 @@
 #include "CaptureLooper.hpp"
 
 #include "cinder/Log.h"
-#include "cinder/ip/Resize.h"
+#include "CinderOpenCV.h"
 
 using namespace std;
 
@@ -58,27 +58,35 @@ void CaptureLooper::update() {
 void CaptureLooper::update(const Surface& surface) {
     
     if( !mMovie || (mMovie->checkPlaythroughOk() && mMovie->checkNewFrame()) ) {
-        if(mMovie) cout << "time" << mMovie->getCurrentTime() << endl;
         if( captureReady() ) {
-            cout << "capturing" << endl;
-            // update capture texture
+            
+            cv::Mat capture, movie, output;
+            ImageSourceRef toTexture;
+            
             if( capture_state == CL_DEFAULT_CAPTURE ) {
-                if( ! mTexture )
-                    mTexture = gl::Texture::create( *mCapture->getSurface(), gl::Texture::Format().loadTopDown() );
-                else
-                    mTexture->update( *mCapture->getSurface() );
+                capture = toOcvRef(*mCapture->getSurface());
             } else {
                 downloadEvfData();
             }
             
             if( mMovie ) {
-                mFrameTexture = mMovie->getTexture();
+                movie = toOcvRef(*mMovie->getSurface());
+                float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
+                cv::addWeighted(capture,alpha,movie,1.0-alpha, 0, output);
                 mMovie->stepForward();
             }
             
-            if( mMovieExporter && recording && timer > 0) {
-                mMovieExporter->addFrame( surface );
+            toTexture = fromOcv((output.empty())? capture : output );
+            
+            if( mMovieExporter && recording) {
+                mMovieExporter->addFrame(toTexture);
             }
+            
+            if (!mTexture)
+                mTexture = gl::Texture::create( toTexture, gl::Texture::Format().loadTopDown() );
+            else
+                mTexture->update( (Surface8u) toTexture );
+            
             
             if(recording) {
                 timer++;
@@ -90,9 +98,6 @@ void CaptureLooper::update(const Surface& surface) {
         if(mMovie) {
             if(mMovie->isDone()) {
                 cout << "MOVIE IS DONE" << timer << '/'<<duration << mMovie->getNumFrames() << endl;
-                if( mMovieExporter && recording && timer > 0) {
-                    mMovieExporter->addFrame( surface );
-                }
                 stop();
             } else {
                 cout << "CT:" << mMovie->getCurrentTime()
@@ -103,16 +108,9 @@ void CaptureLooper::update(const Surface& surface) {
 }
 
 void CaptureLooper::draw() const {
-    Rectf centeredRect;
-    if(mFrameTexture ) {
-        centeredRect = Rectf( mFrameTexture->getBounds() ).getCenteredFit( windowBounds, true );
-        gl::color(1.0, 1.0, 1.0, 1.0);
-        gl::draw( mFrameTexture, centeredRect );
-    }
-    if( (recording_count == 1 && mTexture) || (mFrameTexture && mTexture) ) {
-        float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
-        centeredRect = Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
-        gl::color(1.0, 1.0, 1.0, alpha);
+    if( mTexture ) {
+        Rectf centeredRect = Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
+        gl::color(1.0, 1.0, 1.0);
         gl::draw( mTexture, centeredRect );
     }
 }
@@ -137,14 +135,19 @@ void CaptureLooper::start() {
     fs::path path = getVideoRecordingPath(recording_count);
     cout << "saving to " << path << endl;
     
+    if(mCapture) {
+        ivec2 size = mCapture->getSurface()->getSize();
+        width = size.x;
+        height = size.y;
+    }
+    
     auto format = qtime::MovieWriter::Format()
         .codec( qtime::MovieWriter::H264 )
         .fileType( qtime::MovieWriter::QUICK_TIME_MOVIE )
         .jpegQuality( 1.0f );
         //.averageBitsPerSecond( 1000000 );
     
-    Area area = drawingBounds();
-    mMovieExporter = qtime::MovieWriter::create( path, area.getWidth(),area.getHeight(), format );
+    mMovieExporter = qtime::MovieWriter::create( path, width, height, format );
 
 }
 
@@ -172,7 +175,7 @@ fs::path CaptureLooper::getVideoRecordingPath (int i) const {
 void CaptureLooper::loadMovie( const fs::path &moviePath ) {
     try {
         cout << "loading movie " << moviePath << endl;
-        mMovie = qtime::MovieGl::create( moviePath );
+        mMovie = qtime::MovieSurface::create( moviePath );
         mMovie->stop();
         mMovie->seekToStart();
     } catch( Exception &exc ) {

@@ -12,12 +12,13 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-#define DOING_DANCING_VOICE 0
-#define DOING_DANCING_VIDEO 1
+#define DOING_DANCING_INIT  0
+#define DOING_DANCING_VOICE 1
+#define DOING_DANCING_VIDEO 2
 
 class DoingDancingApp : public App {
     
-    u_int8_t        state;
+    u_int8_t        state = DOING_DANCING_INIT;
     CaptureLooper*  capture;
     VoiceLooper*    voice;
     

@@ -16,6 +16,7 @@
 		00B784B60FF439BC000DE1D7 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B784B20FF439BC000DE1D7 /* CoreAudio.framework */; };
 		00B9955A1B128DF400A5C623 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995581B128DF400A5C623 /* IOKit.framework */; };
 		00B9955B1B128DF400A5C623 /* IOSurface.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00B995591B128DF400A5C623 /* IOSurface.framework */; };
+		434F02ED1DE705310048F8C9 /* OpenCL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 434F02EC1DE705310048F8C9 /* OpenCL.framework */; };
 		434F1CF61DE48C8400EC0948 /* Readme.md in Sources */ = {isa = PBXBuildFile; fileRef = 434F1CF51DE48C8400EC0948 /* Readme.md */; };
 		43BB36471DD9C207005C5F7C /* CaptureLooper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43BB36431DD9C207005C5F7C /* CaptureLooper.cpp */; };
 		43BB36481DD9C207005C5F7C /* VoiceLooper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43BB36441DD9C207005C5F7C /* VoiceLooper.cpp */; };
@@ -59,6 +60,7 @@
 		21B873FAFD474475B0ED5C17 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		434F02EC1DE705310048F8C9 /* OpenCL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenCL.framework; path = System/Library/Frameworks/OpenCL.framework; sourceTree = SDKROOT; };
 		434F1CF51DE48C8400EC0948 /* Readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = Readme.md; path = ../Readme.md; sourceTree = "<group>"; };
 		435987571DD32BA90004033F /* DoingDancingApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DoingDancingApp.h; path = ../include/DoingDancingApp.h; sourceTree = "<group>"; };
 		43BB36431DD9C207005C5F7C /* CaptureLooper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CaptureLooper.cpp; path = ../src/CaptureLooper.cpp; sourceTree = "<group>"; };
@@ -84,6 +86,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				434F02ED1DE705310048F8C9 /* OpenCL.framework in Frameworks */,
 				43BFDA3A1DD87458009C9E49 /* DPP.framework in Frameworks */,
 				43BFDA3B1DD87458009C9E49 /* EDSDK.framework in Frameworks */,
 				006D720419952D00008149E2 /* AVFoundation.framework in Frameworks */,
@@ -197,6 +200,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				434F02EC1DE705310048F8C9 /* OpenCL.framework */,
 				43C397B31DD86F690030BB9A /* DPP.framework */,
 				43C397B41DD86F690030BB9A /* EDSDK.framework */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
@@ -286,7 +290,7 @@
 				ARCHS = "$(ARCHS_STANDARD)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				DEAD_CODE_STRIPPING = YES;
+				DEAD_CODE_STRIPPING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -305,10 +309,32 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				OTHER_LDFLAGS = "\"$(CINDER_PATH)/lib/libcinder_d.a\"";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				OTHER_LDFLAGS = (
+					"\"$(CINDER_PATH)/lib/libcinder_d.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_calib3d.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_core.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_features2d.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_flann.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_hal.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_imgproc.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_ml.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_objdetect.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_photo.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_shape.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_stitching.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_superres.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_video.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_ts.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_videoio.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_videostab.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libippicv.a\"",
+					"\"-lz\"",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.libcinder.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = DoingDancing;
 				SYMROOT = ./build;
+				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../blocks/QuickTime/include ../../../blocks/Cinder-OpenCV3/include ../../../blocks/Cinder-OpenCV3/include/opencv2";
 				VALID_ARCHS = "i386 x86_64";
 				WRAPPER_EXTENSION = app;
 			};
@@ -319,7 +345,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
 				COMBINE_HIDPI_IMAGES = YES;
-				DEAD_CODE_STRIPPING = YES;
+				DEAD_CODE_STRIPPING = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -340,11 +366,33 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				OTHER_LDFLAGS = "\"$(CINDER_PATH)/lib/libcinder.a\"";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				OTHER_LDFLAGS = (
+					"\"$(CINDER_PATH)/lib/libcinder.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_calib3d.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_core.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_features2d.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_flann.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_hal.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_imgproc.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_ml.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_objdetect.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_photo.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_shape.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_stitching.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_superres.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_video.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_ts.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_videoio.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libopencv_videostab.a\"",
+					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libippicv.a\"",
+					"\"-lz\"",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.libcinder.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = DoingDancing;
 				STRIP_INSTALLED_PRODUCT = YES;
 				SYMROOT = ./build;
+				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../blocks/QuickTime/include ../../../blocks/Cinder-OpenCV3/include ../../../blocks/Cinder-OpenCV3/include/opencv2";
 				VALID_ARCHS = "i386 x86_64";
 				WRAPPER_EXTENSION = app;
 			};
@@ -365,7 +413,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../blocks/QuickTime/include";
+				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../blocks/QuickTime/include ../../blocks/Cinder-OpenCV3/include ../../blocks/Cinder-OpenCV3/include/opencv2 ";
 				VALID_ARCHS = "x86_64 i386";
 			};
 			name = Debug;
@@ -383,7 +431,7 @@
 				HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				SDKROOT = macosx;
-				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../blocks/QuickTime/include";
+				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../blocks/QuickTime/include ../../blocks/Cinder-OpenCV3/include ../../blocks/Cinder-OpenCV3/include/opencv2 ";
 				VALID_ARCHS = "x86_64 i386";
 			};
 			name = Release;

@@ -10,9 +10,9 @@ using namespace std;
 void DoingDancingApp::prepareSettings( App::Settings *settings )
 {
     settings->setWindowSize( 1056,704 );
-    settings->setFrameRate( 30 );
+    settings->setFrameRate( 60 );
     settings->setHighDensityDisplayEnabled( false );
-    settings->setFullScreen( true );
+    settings->setFullScreen( false );
     settings->setResizable( false );
     
 }
@@ -22,7 +22,7 @@ void DoingDancingApp::setup() {
     fs::path path = getFolderPath(); //getSaveFilePath();
     if( path.empty() ) quit();
     
-    capture = new CaptureLooper(getWindowBounds(), path, getFrameRate()*seconds);
+    capture = new CaptureLooper(getWindowBounds(), path, 25*seconds);
     if(!capture->isOK()) {
         console() << "THERE WAS A PROBLEM STARTING VIDEO CAPTURE!" << endl;
         quit();
@@ -30,8 +30,9 @@ void DoingDancingApp::setup() {
     }
     
     voice = new VoiceLooper(seconds);
-    voice->start();
     state = DOING_DANCING_VOICE;
+    voice->start();
+    
 }
 
 void DoingDancingApp::cleanup () {
@@ -42,6 +43,9 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
     const char key = event.getChar();
     switch (key) {
         case ' ':
+//            if( state == DOING_DANCING_INIT ) {
+//                
+//            }
 //            if( !capture->isRecording() ) capture->start();
             break;
         default:

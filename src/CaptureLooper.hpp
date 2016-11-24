@@ -41,7 +41,7 @@ class CaptureLooper {
     CaptureRef              mCapture;
     
     qtime::MovieWriterRef   mMovieExporter;
-    qtime::MovieGlRef       mMovie;
+    qtime::MovieSurfaceRef  mMovie;
     
     gl::TextureRef			mFrameTexture;
     gl::TextureRef          mTexture;
