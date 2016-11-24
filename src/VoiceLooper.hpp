@@ -38,6 +38,9 @@ public:
     VoiceLooper(int);
     
     inline bool isStopped() const { return recordingTimer.isStopped(); }
+    inline bool hasBeenAMoment() const {
+        return ( !recordingTimer.isStopped()
+                && recordingTimer.getSeconds() > (duration/2.0f) ); }
     
     void start();
     void setup();

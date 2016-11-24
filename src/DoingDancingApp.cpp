@@ -18,12 +18,11 @@ void DoingDancingApp::prepareSettings( App::Settings *settings )
 }
 
 void DoingDancingApp::setup() {
-    
-    int seconds = 2;
+    int seconds = 5;
     fs::path path = getFolderPath(); //getSaveFilePath();
     if( path.empty() ) quit();
     
-    capture = new CaptureLooper(getWindowBounds(), path, 30*seconds);
+    capture = new CaptureLooper(getWindowBounds(), path, getFrameRate()*seconds);
     if(!capture->isOK()) {
         console() << "THERE WAS A PROBLEM STARTING VIDEO CAPTURE!" << endl;
         quit();
@@ -52,15 +51,6 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
 
 void DoingDancingApp::update() {
     
-    //pass across reference to window surface add to recording
-    if(capture->isRecording()) {
-        Area copy = capture->drawingBounds();
-        capture->update(copyWindowSurface(copy));
-    } else {
-        capture->update();
-    }
-    voice->update();
-    
     if( voice->isStopped() && !capture->isRecording()) {
         cout << getAverageFps() << endl;
         if(state == DOING_DANCING_VOICE) {
@@ -72,6 +62,18 @@ void DoingDancingApp::update() {
         }
     }
     
+    if( state == DOING_DANCING_VOICE && voice->hasBeenAMoment() ) {
+        capture->preload();
+    }
+    
+    if( capture->isRecording() ) {
+        //pass across reference to window surface add to recording
+        Area copy = capture->drawingBounds();
+        capture->update(copyWindowSurface(copy));
+    } else {
+        capture->update();
+    }
+    voice->update();
 }
 
 void DoingDancingApp::draw() {
@@ -79,4 +81,10 @@ void DoingDancingApp::draw() {
     if(capture->isRecording()) capture->draw();
 }
 
-CINDER_APP( DoingDancingApp, RendererGl, DoingDancingApp::prepareSettings )
+RendererGl::Options options() {
+    RendererGl::Options opts;
+    opts.msaa(0);
+    return opts;
+}
+
+CINDER_APP( DoingDancingApp, RendererGl(options()) , DoingDancingApp::prepareSettings )

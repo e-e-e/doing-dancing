@@ -29,6 +29,7 @@ class CaptureLooper {
     u_int32_t               height = 704;
     u_int8_t                capture_state = 0;
     
+    bool                    preloaded = false;
     bool                    recording = false;
     u_int8_t                recording_count = 0;
     u_int32_t               timer = 0;
@@ -40,14 +41,10 @@ class CaptureLooper {
     CaptureRef              mCapture;
     
     qtime::MovieWriterRef   mMovieExporter;
-//    qtime::MovieSurfaceRef	mMovie;
     qtime::MovieGlRef       mMovie;
     
     gl::TextureRef			mFrameTexture;
     gl::TextureRef          mTexture;
-    
-    SurfaceRef              mMoviePixels;
-    SurfaceRef              mLivePixels;
     
 public:
     CaptureLooper(const Area& windowBounds, fs::path path, const u_int32_t duration = 90);
@@ -64,19 +61,21 @@ public:
     
     void update();
     void update(const Surface&);
-    void draw () const;
+    void draw() const;
+    void preload();
     void start();
     
 private:
     
     void stop();
+    
     inline bool captureReady() const {
         return ( capture_state == CL_EDS_CAPTURE ||
                 (capture_state == CL_DEFAULT_CAPTURE &&
                  mCapture && mCapture->checkNewFrame()));
     }
     
-    fs::path getVideoRecordingPath (int);
+    fs::path getVideoRecordingPath (int) const;
     
     inline void loadMovie(const fs::path &moviePath);
     
@@ -85,8 +84,8 @@ private:
     EdsError setupEdsCamera();
     EdsError getFirstCamera(EdsCameraRef *camera);
     
-    static EdsError EDSCALLBACK handlePropertyEvent( EdsPropertyEvent, EdsPropertyID, EdsUInt32, EdsVoid *);
-    static EdsError EDSCALLBACK handleObjectEvent( EdsObjectEvent event, EdsBaseRef object,EdsVoid * context);
+    static EdsError EDSCALLBACK handlePropertyEvent( EdsPropertyEvent, EdsPropertyID, EdsUInt32, EdsVoid*);
+    static EdsError EDSCALLBACK handleObjectEvent( EdsObjectEvent event, EdsBaseRef object,EdsVoid* context);
     
     EdsError keepAlive();
     EdsError startLiveview();

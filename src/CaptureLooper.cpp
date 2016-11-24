@@ -33,19 +33,21 @@ CaptureLooper::~CaptureLooper() {
             EdsTerminateSDK();
         }
     }
-    if(mMovieExporter) mMovieExporter->finish();
-    mMovieExporter.reset();
+    if(mMovieExporter) {
+        mMovieExporter->finish();
+        mMovieExporter.reset();
+    }
+    //
 }
 
 void CaptureLooper::update() {
     if( captureReady() )
     {
         if( capture_state == CL_DEFAULT_CAPTURE ) {
-            mLivePixels = mCapture->getSurface();
             if( ! mTexture )
-                mTexture = gl::Texture::create( *mLivePixels, gl::Texture::Format().loadTopDown() );
+                mTexture = gl::Texture::create( *mCapture->getSurface(), gl::Texture::Format().loadTopDown() );
             else
-                mTexture->update( *mLivePixels );
+                mTexture->update( *mCapture->getSurface() );
             
         } else {
             downloadEvfData();
@@ -55,18 +57,16 @@ void CaptureLooper::update() {
 
 void CaptureLooper::update(const Surface& surface) {
     
-    if(!mMovie || (mMovie->isPlayable() || mMovie->checkPlaythroughOk())) {
-    
+    if( !mMovie || (mMovie->checkPlaythroughOk() && mMovie->checkNewFrame()) ) {
+        if(mMovie) cout << "time" << mMovie->getCurrentTime() << endl;
         if( captureReady() ) {
+            cout << "capturing" << endl;
             // update capture texture
             if( capture_state == CL_DEFAULT_CAPTURE ) {
-                
-                mLivePixels = mCapture->getSurface();
                 if( ! mTexture )
-                    mTexture = gl::Texture::create( *mLivePixels, gl::Texture::Format().loadTopDown() );
+                    mTexture = gl::Texture::create( *mCapture->getSurface(), gl::Texture::Format().loadTopDown() );
                 else
-                    mTexture->update( *mLivePixels );
-                
+                    mTexture->update( *mCapture->getSurface() );
             } else {
                 downloadEvfData();
             }
@@ -76,10 +76,10 @@ void CaptureLooper::update(const Surface& surface) {
                 mMovie->stepForward();
             }
             
-            if( mMovieExporter && recording ) {
+            if( mMovieExporter && recording && timer > 0) {
                 mMovieExporter->addFrame( surface );
             }
-        
+            
             if(recording) {
                 timer++;
                 if( timer >= duration ) stop();
@@ -88,9 +88,13 @@ void CaptureLooper::update(const Surface& surface) {
         }
     } else {
         if(mMovie) {
-            if(mMovie->isDone())
+            if(mMovie->isDone()) {
                 cout << "MOVIE IS DONE" << timer << '/'<<duration << mMovie->getNumFrames() << endl;
-            else {
+                if( mMovieExporter && recording && timer > 0) {
+                    mMovieExporter->addFrame( surface );
+                }
+                stop();
+            } else {
                 cout << "CT:" << mMovie->getCurrentTime()
                 << " DUR: " << mMovie->getDuration() << endl;
             }
@@ -100,12 +104,12 @@ void CaptureLooper::update(const Surface& surface) {
 
 void CaptureLooper::draw() const {
     Rectf centeredRect;
-    if(mFrameTexture) {
+    if(mFrameTexture ) {
         centeredRect = Rectf( mFrameTexture->getBounds() ).getCenteredFit( windowBounds, true );
         gl::color(1.0, 1.0, 1.0, 1.0);
         gl::draw( mFrameTexture, centeredRect );
     }
-    if( mTexture ) {
+    if( (recording_count == 1 && mTexture) || (mFrameTexture && mTexture) ) {
         float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
         centeredRect = Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
         gl::color(1.0, 1.0, 1.0, alpha);
@@ -113,15 +117,18 @@ void CaptureLooper::draw() const {
     }
 }
 
+void CaptureLooper::preload() {
+    if(recording_count>0 && !preloaded) {
+        fs::path movie_path = getVideoRecordingPath(recording_count);
+        loadMovie(movie_path);
+        preloaded = true;
+    }
+}
+
 void CaptureLooper::start() {
    
     if( capture_state == CL_EDS_CAPTURE )
         keepAlive();
-    
-    if(recording_count>0) {
-        fs::path movie_path = getVideoRecordingPath(recording_count);
-        loadMovie(movie_path);
-    }
     
     recording = true;
     timer = 0;
@@ -133,8 +140,8 @@ void CaptureLooper::start() {
     auto format = qtime::MovieWriter::Format()
         .codec( qtime::MovieWriter::H264 )
         .fileType( qtime::MovieWriter::QUICK_TIME_MOVIE )
-        .jpegQuality( 0.09f )
-        .averageBitsPerSecond( 10000000 );
+        .jpegQuality( 1.0f );
+        //.averageBitsPerSecond( 1000000 );
     
     Area area = drawingBounds();
     mMovieExporter = qtime::MovieWriter::create( path, area.getWidth(),area.getHeight(), format );
@@ -150,9 +157,11 @@ void CaptureLooper::stop() {
     mMovieExporter.reset();
     timer = 0;
     recording = false;
+    preloaded = false;
+    
 }
 
-fs::path CaptureLooper::getVideoRecordingPath (int i) {
+fs::path CaptureLooper::getVideoRecordingPath (int i) const {
     fs::path path = fs::path(saveFolder);
     path += "/doing_dancing_" + to_string(i) + ".mov";
     return path;
@@ -164,6 +173,8 @@ void CaptureLooper::loadMovie( const fs::path &moviePath ) {
     try {
         cout << "loading movie " << moviePath << endl;
         mMovie = qtime::MovieGl::create( moviePath );
+        mMovie->stop();
+        mMovie->seekToStart();
     } catch( Exception &exc ) {
         cout << "Exception caught trying to load the movie from path: "
             << moviePath << ", what: " << exc.what()
