@@ -30,23 +30,33 @@ void DoingDancingApp::setup() {
     }
     
     voice = new VoiceLooper(seconds);
-    state = DOING_DANCING_VOICE;
-    voice->start();
+//    state = DOING_DANCING_VOICE;
+//    voice->start();
     
 }
 
 void DoingDancingApp::cleanup () {
     if( capture )   delete capture;
+    if( voice )   delete voice;
 }
 
 void DoingDancingApp::keyDown( KeyEvent event ) {
     const char key = event.getChar();
     switch (key) {
         case ' ':
-//            if( state == DOING_DANCING_INIT ) {
-//                
-//            }
-//            if( !capture->isRecording() ) capture->start();
+            if( state == DOING_DANCING_INIT ) {
+                voice->start();
+                state = DOING_DANCING_VOICE;
+            } else if ( voice->isStopped() && !capture->isRecording()) {
+                cout << getAverageFps() << endl;
+                if(state == DOING_DANCING_VOICE) {
+                    capture->start();
+                    state = DOING_DANCING_VIDEO;
+                } else {
+                    voice->start();
+                    state = DOING_DANCING_VOICE;
+                }
+            }
             break;
         default:
             break;
@@ -55,28 +65,11 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
 
 void DoingDancingApp::update() {
     
-    if( voice->isStopped() && !capture->isRecording()) {
-        cout << getAverageFps() << endl;
-        if(state == DOING_DANCING_VOICE) {
-            capture->start();
-            state = DOING_DANCING_VIDEO;
-        } else {
-            voice->start();
-            state = DOING_DANCING_VOICE;
-        }
-    }
-    
     if( state == DOING_DANCING_VOICE && voice->hasBeenAMoment() ) {
         capture->preload();
     }
     
-    if( capture->isRecording() ) {
-        //pass across reference to window surface add to recording
-        Area copy = capture->drawingBounds();
-        capture->update(copyWindowSurface(copy));
-    } else {
-        capture->update();
-    }
+    capture->update();
     voice->update();
 }
 

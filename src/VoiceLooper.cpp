@@ -16,6 +16,10 @@ VoiceLooper::VoiceLooper (int d) : duration(d) {
     setup();
 }
 
+VoiceLooper::~VoiceLooper() {
+    stop();
+}
+
 void VoiceLooper::setup() {
     auto ctx = audio::Context::master();
     
@@ -63,16 +67,19 @@ void VoiceLooper::setup() {
 }
 
 void VoiceLooper::update() {
-    if( !isStopped() && recordingTimer.getSeconds() > duration ) {
-        recordingTimer.stop();
-        bufferPlayer->stop();
-        audioRecorder->stop();
-    };
+    if( !isStopped() && recordingTimer.getSeconds() > duration ) stop();
+}
+
+void VoiceLooper::stop() {
+    cout << "Stopped recording" << endl;
+    recordingTimer.stop();
+    bufferPlayer->stop();
+    audioRecorder->stop();
 }
 
 void VoiceLooper::start() {
     recordingCount++;
-    console() << "Recording count:" << recordingCount << endl;
+    console() << "Starting voice recording: " << recordingCount << endl;
     float ratio = 1.0 / float(recordingCount);
     previousNoise->setValue(1.0 - ratio);
     currentNoise->setValue(ratio);

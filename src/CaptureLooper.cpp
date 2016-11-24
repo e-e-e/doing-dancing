@@ -41,8 +41,7 @@ CaptureLooper::~CaptureLooper() {
 }
 
 void CaptureLooper::update() {
-    if( captureReady() )
-    {
+    if(!recording && captureReady()) {
         if( capture_state == CL_DEFAULT_CAPTURE ) {
             if( ! mTexture )
                 mTexture = gl::Texture::create( *mCapture->getSurface(), gl::Texture::Format().loadTopDown() );
@@ -52,58 +51,40 @@ void CaptureLooper::update() {
         } else {
             downloadEvfData();
         }
-    }
-}
-
-void CaptureLooper::update(const Surface& surface) {
-    
-    if( !mMovie || (mMovie->checkPlaythroughOk() && mMovie->checkNewFrame()) ) {
-        if( captureReady() ) {
-            
-            cv::Mat capture, movie, output;
-            ImageSourceRef toTexture;
-            
-            if( capture_state == CL_DEFAULT_CAPTURE ) {
-                capture = toOcvRef(*mCapture->getSurface());
-            } else {
-                downloadEvfData();
-            }
-            
-            if( mMovie ) {
-                movie = toOcvRef(*mMovie->getSurface());
-                float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
-                cv::addWeighted(capture,alpha,movie,1.0-alpha, 0, output);
-                mMovie->stepForward();
-            }
-            
-            toTexture = fromOcv((output.empty())? capture : output );
-            
-            if( mMovieExporter && recording) {
-                mMovieExporter->addFrame(toTexture);
-            }
-            
-            if (!mTexture)
-                mTexture = gl::Texture::create( toTexture, gl::Texture::Format().loadTopDown() );
-            else
-                mTexture->update( (Surface8u) toTexture );
-            
-            
-            if(recording) {
-                timer++;
-                if( timer >= duration ) stop();
-            }
+    } else if ( recording && recordingReady() && captureReady() ) {
+        cv::Mat capture, movie, output;
+        ImageSourceRef toTexture;
         
+        if( capture_state == CL_DEFAULT_CAPTURE ) {
+            capture = toOcvRef(*mCapture->getSurface());
+        } else {
+            downloadEvfData();
         }
-    } else {
-        if(mMovie) {
-            if(mMovie->isDone()) {
-                cout << "MOVIE IS DONE" << timer << '/'<<duration << mMovie->getNumFrames() << endl;
-                stop();
-            } else {
-                cout << "CT:" << mMovie->getCurrentTime()
-                << " DUR: " << mMovie->getDuration() << endl;
-            }
+        
+        if( mMovie ) {
+            movie = toOcvRef(*mMovie->getSurface());
+            float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
+            cv::addWeighted(capture,alpha,movie,1.0-alpha, 0, output);
+            mMovie->stepForward();
         }
+        
+        toTexture = fromOcv((output.empty())? capture : output );
+        
+        if( mMovieExporter && recording) {
+            mMovieExporter->addFrame(toTexture);
+        }
+        
+        if (!mTexture)
+            mTexture = gl::Texture::create( toTexture, gl::Texture::Format().loadTopDown() );
+        else
+            mTexture->update( (Surface8u) toTexture );
+        
+        
+        if(recording) {
+            timer++;
+            if( timer >= duration ) stop();
+        }
+    
     }
 }
 
@@ -133,7 +114,7 @@ void CaptureLooper::start() {
     recording_count++;
     
     fs::path path = getVideoRecordingPath(recording_count);
-    cout << "saving to " << path << endl;
+    cout << "Starting Video Recording: " << path << endl;
     
     if(mCapture) {
         ivec2 size = mCapture->getSurface()->getSize();
@@ -152,6 +133,7 @@ void CaptureLooper::start() {
 }
 
 void CaptureLooper::stop() {
+    cout << "Stopped video recording!" << endl;
     if(mMovie && mMovie != nullptr) {
         mMovie->stop();
         mMovie.reset();

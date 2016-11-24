@@ -60,7 +60,6 @@ public:
     };
     
     void update();
-    void update(const Surface&);
     void draw() const;
     void preload();
     void start();
@@ -73,6 +72,12 @@ private:
         return ( capture_state == CL_EDS_CAPTURE ||
                 (capture_state == CL_DEFAULT_CAPTURE &&
                  mCapture && mCapture->checkNewFrame()));
+    }
+    
+    inline bool recordingReady() const {
+        return ( !mMovie ||
+                (mMovie->checkPlaythroughOk() &&
+                 mMovie->checkNewFrame()));
     }
     
     fs::path getVideoRecordingPath (int) const;

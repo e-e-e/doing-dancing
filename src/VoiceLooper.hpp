@@ -36,6 +36,7 @@ public:
     
     VoiceLooper();
     VoiceLooper(int);
+    ~VoiceLooper();
     
     inline bool isStopped() const { return recordingTimer.isStopped(); }
     inline bool hasBeenAMoment() const {
@@ -49,7 +50,7 @@ public:
 
 private:
     
-    
+    void stop();
     
 };
 
