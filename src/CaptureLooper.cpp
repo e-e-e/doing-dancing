@@ -2,17 +2,61 @@
 #include "CaptureLooper.hpp"
 
 #include "cinder/Log.h"
-#include "CinderOpenCV.h"
 
 using namespace std;
 
-CaptureLooper::CaptureLooper(const Area& windowBounds, fs::path path, const u_int32_t duration )
-    : windowBounds(windowBounds), saveFolder(path), duration(duration)
+void printChannelOrder (SurfaceRef ref) {
+    switch ((ref->getChannelOrder()).getCode()) {
+        case SurfaceChannelOrder::RGBA:
+            cout<< "RGBA";
+            break;
+        case SurfaceChannelOrder::BGRA:
+            cout<< "BGRA";
+            break;
+        case SurfaceChannelOrder::ARGB:
+            cout<< "ARGB";
+            break;
+        case SurfaceChannelOrder::ABGR:
+            cout<< "ABGR";
+            break;
+        case SurfaceChannelOrder::RGBX:
+            cout<< "RGBX";
+            break;
+        case SurfaceChannelOrder::BGRX:
+            cout<< "BGRX";
+            break;
+        case SurfaceChannelOrder::XRGB:
+            cout<< "XRGB";
+            break;
+        case SurfaceChannelOrder::XBGR:
+            cout<< "XBGR";
+            break;
+        case SurfaceChannelOrder::RGB:
+            cout<< "RGB";
+            break;
+        case SurfaceChannelOrder::BGR:
+            cout<< "BGR";
+            break;
+        case SurfaceChannelOrder::UNSPECIFIED:
+            cout<< "UNSPECIFIED";
+            break;
+        default:
+            cout<<'!';
+            break;
+    }
+    cout << endl;
+}
+
+CaptureLooper::CaptureLooper(const Area& windowBounds, fs::path path, const u_int32_t duration, u_int32_t framerate)
+    : framerate(framerate), windowBounds(windowBounds),
+      saveFolder(path), duration(duration*framerate),
+      framerateInSeconds(1.0 / (double) framerate )
 {
     EdsError err = setupEdsCamera();
     if( err != EDS_ERR_OK ) {
         setupDefaultCapture();
     }
+    cout << framerateInSeconds << ' ' << framerate << endl;
 }
 
 CaptureLooper::~CaptureLooper() {
@@ -50,46 +94,69 @@ void CaptureLooper::update() {
             
         } else {
             downloadEvfData();
+            if( newFrame && mLivePixels ) {
+                if (!mTexture)
+                    mTexture = gl::Texture::create( *mLivePixels, gl::Texture::Format().loadTopDown() );
+                else
+                    mTexture->update( *mLivePixels );
+            }
         }
     } else if ( recording && recordingReady() && captureReady() ) {
         cv::Mat capture, movie, output;
-        ImageSourceRef toTexture;
+        SurfaceRef toTexture;
         
         if( capture_state == CL_DEFAULT_CAPTURE ) {
-            capture = toOcvRef(*mCapture->getSurface());
+            capture = toOcvRef( *mCapture->getSurface() );
         } else {
             downloadEvfData();
+            if(newFrame) capture = toOcvRef( *mLivePixels );
         }
         
-        if( mMovie ) {
-            movie = toOcvRef(*mMovie->getSurface());
-            float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
-            cv::addWeighted(capture,alpha,movie,1.0-alpha, 0, output);
-            mMovie->stepForward();
-        }
+        if( !capture.empty() ) {
         
-        toTexture = fromOcv((output.empty())? capture : output );
-        
-        if( mMovieExporter && recording) {
-            mMovieExporter->addFrame(toTexture);
-        }
-        
-        if (!mTexture)
-            mTexture = gl::Texture::create( toTexture, gl::Texture::Format().loadTopDown() );
-        else
-            mTexture->update( (Surface8u) toTexture );
-        
-        
-        if(recording) {
-            timer++;
-            if( timer >= duration ) stop();
+            if( mMovie ) {
+                
+                movie = toOcvRef(*mMovie->getSurface());
+
+                float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
+
+                //cv::cvtColor(movie, movie, cv::COLOR_BGRA2BGR);
+    //                        cout << "Width : " << movie.cols << endl;
+    //                        cout << "Height: " << movie.rows << endl;
+    //                        cout << "channels: " << movie.channels() << endl;
+    //                        cout << "Width : " << capture.cols << endl;
+    //                        cout << "Height: " << capture.rows << endl;
+    //                        cout << "channels: " << capture.channels() << endl;
+                //            printChannelOrder(mMovie->getSurface());
+                cv::addWeighted(capture,alpha,movie,1.0-alpha, 0, output);
+                mMovie->stepForward();
+            }
+            
+            toTexture = Surface::create( fromOcv((output.empty())? capture : output ));
+            
+            if( mMovieExporter && recording) {
+                mMovieExporter->addFrame(*toTexture);
+            }
+            
+            if( capture_state == CL_EDS_CAPTURE )
+                toTexture->setChannelOrder(SurfaceChannelOrder(SurfaceChannelOrder::BGRA));
+            if (!mTexture)
+                mTexture = gl::Texture::create( *toTexture, gl::Texture::Format().loadTopDown() );
+            else
+                mTexture->update( *toTexture );
+            
+            
+            if(recording) {
+                frameCount++;
+                if( frameCount >= duration ) stop();
+            }
         }
     
     }
 }
 
 void CaptureLooper::draw() const {
-    if( mTexture ) {
+    if( mTexture && recording) {
         Rectf centeredRect = Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
         gl::color(1.0, 1.0, 1.0);
         gl::draw( mTexture, centeredRect );
@@ -109,8 +176,9 @@ void CaptureLooper::start() {
     if( capture_state == CL_EDS_CAPTURE )
         keepAlive();
     
+    timer.start();
     recording = true;
-    timer = 0;
+    frameCount = 0;
     recording_count++;
     
     fs::path path = getVideoRecordingPath(recording_count);
@@ -125,7 +193,8 @@ void CaptureLooper::start() {
     auto format = qtime::MovieWriter::Format()
         .codec( qtime::MovieWriter::H264 )
         .fileType( qtime::MovieWriter::QUICK_TIME_MOVIE )
-        .jpegQuality( 1.0f );
+        .jpegQuality( 1.0f )
+        .averageBitsPerSecond(framerateInSeconds);
         //.averageBitsPerSecond( 1000000 );
     
     mMovieExporter = qtime::MovieWriter::create( path, width, height, format );
@@ -138,12 +207,22 @@ void CaptureLooper::stop() {
         mMovie->stop();
         mMovie.reset();
     }
+    timer.stop();
     mMovieExporter->finish();
     mMovieExporter.reset();
-    timer = 0;
+    frameCount = 0;
     recording = false;
     preloaded = false;
     
+}
+
+bool CaptureLooper::nextFrame() {
+    double seconds = timer.getSeconds();
+    if( seconds >= framerateInSeconds ) {
+        timer.start(seconds - framerateInSeconds);
+        return true;
+    }
+    return false;
 }
 
 fs::path CaptureLooper::getVideoRecordingPath (int i) const {
@@ -166,7 +245,6 @@ void CaptureLooper::loadMovie( const fs::path &moviePath ) {
             << endl;
         mMovie.reset();
     }
-    mFrameTexture.reset();
 }
 
 void CaptureLooper::setupDefaultCapture() {
@@ -317,55 +395,62 @@ EdsError CaptureLooper::keepAlive() {
 }
 
 EdsError CaptureLooper::downloadEvfData() {
-    EdsError err = EDS_ERR_OK;
-    EdsStreamRef stream = NULL;
-    EdsEvfImageRef evfImage = NULL;
-    // Create memory stream.
-    err = EdsCreateMemoryStream( 0, &stream);
-    // Create EvfImageRef.
-    if(err == EDS_ERR_OK) {
-        err = EdsCreateEvfImageRef(stream, &evfImage);
-    }
-    // Download live view image data.
-    if(err == EDS_ERR_OK) {
-        err = EdsDownloadEvfImage(camera, evfImage);
-    }
-    // Get the incidental data of the image.
-    if(err == EDS_ERR_OK) {
-        // Get the zoom ratio
-        EdsUInt32 zoom;
-        EdsGetPropertyData(evfImage, kEdsPropID_Evf_ZoomPosition, 0 , sizeof(zoom), &zoom);
-        // Get the focus and zoom border position
-        EdsPoint point;
-        EdsGetPropertyData(evfImage, kEdsPropID_Evf_ZoomPosition, 0 , sizeof(point), &point);
-        
-        EdsUInt64 length;
-        EdsGetLength(stream, &length);
-        
-        if( length > 0 ){
-            
-            unsigned char * ImageData;
-            EdsUInt64 DataSize = length;
-            
-            EdsGetPointer(stream,(EdsVoid**)&ImageData);
-            EdsGetLength(stream, &DataSize);
-            
-            BufferRef buffer = Buffer::create(ImageData,DataSize);
-            mTexture = gl::Texture::create( loadImage( DataSourceBuffer::create(buffer), ImageSource::Options(), "jpg" ));
-//            printf("%i,%i\n",mTexture->getWidth(), mTexture->getHeight());
-            
+    if( nextFrame() ) {
+        newFrame = true;
+        EdsError err = EDS_ERR_OK;
+        EdsStreamRef stream = NULL;
+        EdsEvfImageRef evfImage = NULL;
+        // Create memory stream.
+        err = EdsCreateMemoryStream( 0, &stream);
+        // Create EvfImageRef.
+        if(err == EDS_ERR_OK) {
+            err = EdsCreateEvfImageRef(stream, &evfImage);
         }
-    }
-    
-    // Release stream
-    if(stream != NULL) {
-        EdsRelease(stream);
-        stream = NULL;
-    }
-    // Release evfImage
-    if(evfImage != NULL) {
-        EdsRelease(evfImage);
-        evfImage = NULL;
+        // Download live view image data.
+        if(err == EDS_ERR_OK) {
+            err = EdsDownloadEvfImage(camera, evfImage);
+        }
+        // Get the incidental data of the image.
+        if(err == EDS_ERR_OK) {
+            // Get the zoom ratio
+            EdsUInt32 zoom;
+            EdsGetPropertyData(evfImage, kEdsPropID_Evf_ZoomPosition, 0 , sizeof(zoom), &zoom);
+            // Get the focus and zoom border position
+            EdsPoint point;
+            EdsGetPropertyData(evfImage, kEdsPropID_Evf_ZoomPosition, 0 , sizeof(point), &point);
+            
+            EdsUInt64 length;
+            EdsGetLength(stream, &length);
+            
+            if( length > 0 ){
+                
+                unsigned char * ImageData;
+                EdsUInt64 DataSize = length;
+                
+                EdsGetPointer(stream,(EdsVoid**)&ImageData);
+                EdsGetLength(stream, &DataSize);
+                
+                BufferRef buffer = Buffer::create(ImageData,DataSize);
+                mLivePixels = Surface::create(loadImage( DataSourceBuffer::create(buffer), ImageSource::Options(), "jpg" ), SurfaceConstraints(), true);
+    //            mLivePixels->setChannelOrder(SurfaceChannelOrder(SurfaceChannelOrder::BGRA));
+    //            mTexture = gl::Texture::create( loadImage( DataSourceBuffer::create(buffer), ImageSource::Options(), "jpg" ));
+    //            printf("%i,%i\n",mTexture->getWidth(), mTexture->getHeight());
+                
+            }
+        }
+        
+        // Release stream
+        if(stream != NULL) {
+            EdsRelease(stream);
+            stream = NULL;
+        }
+        // Release evfImage
+        if(evfImage != NULL) {
+            EdsRelease(evfImage);
+            evfImage = NULL;
+        }
+    } else {
+        newFrame = false;
     }
     return err;
 }

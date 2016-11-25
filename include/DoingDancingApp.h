@@ -22,6 +22,8 @@ class DoingDancingApp : public App {
     CaptureLooper*  capture;
     VoiceLooper*    voice;
     
+    Timer           timer;
+    
 public:
     
     static void prepareSettings( Settings *settings );
@@ -31,6 +33,10 @@ public:
     void update() override;
     void draw() override;
     void cleanup() override;
+    
+private:
+    
+    inline void change();
     
 };
 

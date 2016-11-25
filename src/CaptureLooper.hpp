@@ -9,6 +9,7 @@
 #include "cinder/Capture.h"
 #include "cinder/qtime/AvfWriter.h"
 #include "cinder/qtime/QuickTimeGl.h"
+#include "CinderOpenCV.h"
 
 #include "EDSDK.h"
 #include "EDSDKTypes.h"
@@ -24,6 +25,8 @@ class CaptureLooper {
     
     const fs::path          saveFolder;
     const u_int32_t         duration;
+    const u_int32_t         framerate;
+    const double            framerateInSeconds;
     const Area              windowBounds;
     u_int32_t               width = 1056;
     u_int32_t               height = 704;
@@ -32,22 +35,26 @@ class CaptureLooper {
     bool                    preloaded = false;
     bool                    recording = false;
     u_int8_t                recording_count = 0;
-    u_int32_t               timer = 0;
+    u_int32_t               frameCount = 0;
+    Timer                   timer;
+    bool                    newFrame = false;
+    
     
     EdsError                err;
     EdsCameraRef            camera;
     bool                    isSDKLoaded;
     
     CaptureRef              mCapture;
+    SurfaceRef              mLivePixels;
     
     qtime::MovieWriterRef   mMovieExporter;
     qtime::MovieSurfaceRef  mMovie;
     
-    gl::TextureRef			mFrameTexture;
     gl::TextureRef          mTexture;
     
+    
 public:
-    CaptureLooper(const Area& windowBounds, fs::path path, const u_int32_t duration = 90);
+    CaptureLooper(const Area& windowBounds, fs::path path, const u_int32_t duration = 3, u_int32_t framerate=15);
     ~CaptureLooper();
     
     inline bool isOK() const { return (capture_state != CL_NO_CAPTURE); }
@@ -67,6 +74,8 @@ public:
 private:
     
     void stop();
+    
+    bool nextFrame();
     
     inline bool captureReady() const {
         return ( capture_state == CL_EDS_CAPTURE ||
