@@ -30,9 +30,10 @@ void DoingDancingApp::setup() {
     }
     
     voice = new VoiceLooper(seconds);
-//    state = DOING_DANCING_VOICE;
-//    voice->start();
+    
+#ifdef DOING_DANCING_AUTOMATED
     change();
+#endif
 }
 
 void DoingDancingApp::cleanup () {
@@ -44,7 +45,9 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
     const char key = event.getChar();
     switch (key) {
         case ' ':
+#ifndef DOING_DANCING_AUTOMATED
             change();
+#endif
             break;
         default:
             break;
@@ -57,7 +60,9 @@ void DoingDancingApp::update() {
         capture->preload();
     }
     
+#ifdef DOING_DANCING_AUTOMATED
     change();
+#endif
     
     capture->update();
     voice->update();
@@ -88,10 +93,10 @@ void DoingDancingApp::change() {
 
 }
 
-RendererGl::Options options() {
+RendererGl::Options optionsGL() {
     RendererGl::Options opts;
     opts.msaa(0);
     return opts;
 }
 
-CINDER_APP( DoingDancingApp, RendererGl(options()) , DoingDancingApp::prepareSettings )
+CINDER_APP( DoingDancingApp, RendererGl(optionsGL()) , DoingDancingApp::prepareSettings )

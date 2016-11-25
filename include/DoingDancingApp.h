@@ -8,13 +8,14 @@
 #include "CaptureLooper.hpp"
 #include "VoiceLooper.hpp"
 
-using namespace ci;
-using namespace ci::app;
-using namespace std;
-
+#define DOING_DANCING_AUTOMATED
 #define DOING_DANCING_INIT  0
 #define DOING_DANCING_VOICE 1
 #define DOING_DANCING_VIDEO 2
+
+using namespace ci;
+using namespace ci::app;
+using namespace std;
 
 class DoingDancingApp : public App {
     
