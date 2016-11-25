@@ -9,7 +9,6 @@
 #include "cinder/Capture.h"
 #include "cinder/qtime/AvfWriter.h"
 #include "cinder/qtime/QuickTimeGl.h"
-#include "CinderOpenCV.h"
 
 #include "EDSDK.h"
 #include "EDSDKTypes.h"
@@ -60,9 +59,8 @@ public:
     inline bool isOK() const { return (capture_state != CL_NO_CAPTURE); }
     inline bool isRecording() const { return recording; }
     inline Area drawingBounds () const {
-        if(mTexture) {
+        if(mTexture)
             return (Area) Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
-        }
         return Area::zero();
     };
     
@@ -72,10 +70,6 @@ public:
     void start();
     
 private:
-    
-    void stop();
-    
-    bool nextFrame();
     
     inline bool captureReady() const {
         return ( capture_state == CL_EDS_CAPTURE ||
@@ -89,8 +83,9 @@ private:
                  mMovie->checkNewFrame()));
     }
     
+    void stop();
+    bool nextFrame();
     fs::path getVideoRecordingPath (int) const;
-    
     inline void loadMovie(const fs::path &moviePath);
     
     void setupDefaultCapture();

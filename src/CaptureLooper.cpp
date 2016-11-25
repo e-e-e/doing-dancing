@@ -1,6 +1,7 @@
 
 #include "CaptureLooper.hpp"
 
+#include "CinderOpenCV.h"
 #include "cinder/Log.h"
 
 using namespace std;
@@ -102,6 +103,7 @@ void CaptureLooper::update() {
             }
         }
     } else if ( recording && recordingReady() && captureReady() ) {
+        
         cv::Mat capture, movie, output;
         SurfaceRef toTexture;
         
@@ -115,19 +117,8 @@ void CaptureLooper::update() {
         if( !capture.empty() ) {
         
             if( mMovie ) {
-                
+                float alpha = 1.0 / float(recording_count);
                 movie = toOcvRef(*mMovie->getSurface());
-
-                float alpha = (recording_count > 0) ? 1.0 / float(recording_count) : 1.0;
-
-                //cv::cvtColor(movie, movie, cv::COLOR_BGRA2BGR);
-    //                        cout << "Width : " << movie.cols << endl;
-    //                        cout << "Height: " << movie.rows << endl;
-    //                        cout << "channels: " << movie.channels() << endl;
-    //                        cout << "Width : " << capture.cols << endl;
-    //                        cout << "Height: " << capture.rows << endl;
-    //                        cout << "channels: " << capture.channels() << endl;
-                //            printChannelOrder(mMovie->getSurface());
                 cv::addWeighted(capture,alpha,movie,1.0-alpha, 0, output);
                 mMovie->stepForward();
             }
@@ -138,20 +129,20 @@ void CaptureLooper::update() {
                 mMovieExporter->addFrame(*toTexture);
             }
             
+            //flip channel order to display nicely
             if( capture_state == CL_EDS_CAPTURE )
                 toTexture->setChannelOrder(SurfaceChannelOrder(SurfaceChannelOrder::BGRA));
-            if (!mTexture)
+            
+            if( !mTexture )
                 mTexture = gl::Texture::create( *toTexture, gl::Texture::Format().loadTopDown() );
             else
                 mTexture->update( *toTexture );
             
-            
-            if(recording) {
+            if( recording ) {
                 frameCount++;
                 if( frameCount >= duration ) stop();
             }
         }
-    
     }
 }
 
@@ -164,10 +155,13 @@ void CaptureLooper::draw() const {
 }
 
 void CaptureLooper::preload() {
-    if(recording_count>0 && !preloaded) {
+    if( recording_count > 0 && !preloaded ) {
         fs::path movie_path = getVideoRecordingPath(recording_count);
         loadMovie(movie_path);
         preloaded = true;
+        
+        if( capture_state == CL_EDS_CAPTURE )
+            keepAlive();
     }
 }
 
@@ -194,7 +188,7 @@ void CaptureLooper::start() {
         .codec( qtime::MovieWriter::H264 )
         .fileType( qtime::MovieWriter::QUICK_TIME_MOVIE )
         .jpegQuality( 1.0f )
-        .averageBitsPerSecond(framerateInSeconds);
+        .defaultFrameDuration(framerateInSeconds);
         //.averageBitsPerSecond( 1000000 );
     
     mMovieExporter = qtime::MovieWriter::create( path, width, height, format );
