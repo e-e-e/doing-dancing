@@ -29,7 +29,7 @@ void DoingDancingApp::setup() {
         return;
     }
     
-    voice = new VoiceLooper(seconds);
+    voice = new VoiceLooper(path, seconds);
     
 #ifdef DOING_DANCING_AUTOMATED
     change();

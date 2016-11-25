@@ -22,20 +22,23 @@ using namespace std;
 
 class VoiceLooper {
     
-    const int duration;
-    int recordingCount = 0;
-    Timer recordingTimer;
+    const bool              saveAudio;
+    const fs::path          saveFolder;
+    const int               duration;
+    int                     recordingCount = 0;
+    Timer                   recordingTimer;
     
-    audio::InputDeviceNodeRef input;
-    audio::BufferRecorderNodeRef audioRecorder;
-    audio::BufferPlayerNodeRef bufferPlayer;
-    audio::GainNodeRef previousNoise;
-    audio::GainNodeRef currentNoise;
+    audio::InputDeviceNodeRef       input;
+    audio::BufferRecorderNodeRef    audioRecorder;
+    audio::BufferPlayerNodeRef      bufferPlayer;
+    audio::GainNodeRef              previousNoise;
+    audio::GainNodeRef              currentNoise;
     
 public:
     
     VoiceLooper();
-    VoiceLooper(int);
+    VoiceLooper(fs::path);
+    VoiceLooper(fs::path, int);
     ~VoiceLooper();
     
     inline bool isStopped() const { return recordingTimer.isStopped(); }
@@ -51,6 +54,8 @@ public:
 private:
     
     void stop();
+    
+    fs::path getRecordingPath (int) const;
     
 };
 

@@ -8,11 +8,21 @@
 
 #include "VoiceLooper.hpp"
 
-VoiceLooper::VoiceLooper () : duration(71) {
+VoiceLooper::VoiceLooper ()
+    : saveAudio(false), duration(71)
+{
     setup();
 }
 
-VoiceLooper::VoiceLooper (int d) : duration(d) {
+VoiceLooper::VoiceLooper (fs::path path)
+    : saveFolder(path), saveAudio(true), duration(71)
+{
+    setup();
+}
+
+VoiceLooper::VoiceLooper (fs::path path, int d)
+    : saveFolder(path), saveAudio(true), duration(d)
+{
     setup();
 }
 
@@ -59,9 +69,7 @@ void VoiceLooper::setup() {
     bufferPlayer >> ctx->getOutput();
     
     
-    bufferPlayer->enable();
-    audioRecorder->enable();
-    input->enable();
+    
     ctx->enable();
     
 }
@@ -70,24 +78,39 @@ void VoiceLooper::update() {
     if( !isStopped() && recordingTimer.getSeconds() > duration ) stop();
 }
 
-void VoiceLooper::stop() {
-    cout << "Stopped recording" << endl;
-    recordingTimer.stop();
-    bufferPlayer->stop();
-    audioRecorder->stop();
-}
-
 void VoiceLooper::start() {
     recordingCount++;
     console() << "Starting voice recording: " << recordingCount << endl;
     float ratio = 1.0 / float(recordingCount);
     previousNoise->setValue(1.0 - ratio);
     currentNoise->setValue(ratio);
-    
+    bufferPlayer->enable();
+    audioRecorder->enable();
+    input->enable();
     bufferPlayer->setBuffer( audioRecorder->getRecordedCopy());
     bufferPlayer->enable();
     bufferPlayer->start();
     audioRecorder->start();
     recordingTimer.start();
     
+}
+
+void VoiceLooper::stop() {
+    cout << "Stopped recording" << endl;
+    recordingTimer.stop();
+    bufferPlayer->stop();
+    if( audioRecorder->isEnabled() ) {
+        audioRecorder->stop();
+        if(saveAudio && recordingCount > 0) {
+            fs::path path = getRecordingPath(recordingCount);
+            audioRecorder->writeToFile(path);
+        }
+        audioRecorder->disable();
+    }
+}
+
+fs::path VoiceLooper::getRecordingPath (int i) const {
+    fs::path path = fs::path(saveFolder);
+    path += "/doing_dancing_" + to_string(i) + ".wav";
+    return path;
 }

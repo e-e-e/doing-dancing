@@ -8,7 +8,7 @@
 #include "CaptureLooper.hpp"
 #include "VoiceLooper.hpp"
 
-#define DOING_DANCING_AUTOMATED
+//#define DOING_DANCING_AUTOMATED
 #define DOING_DANCING_INIT  0
 #define DOING_DANCING_VOICE 1
 #define DOING_DANCING_VIDEO 2
