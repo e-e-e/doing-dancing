@@ -98,8 +98,8 @@ void VoiceLooper::start() {
 void VoiceLooper::stop() {
     cout << "Stopped recording" << endl;
     recordingTimer.stop();
-    bufferPlayer->stop();
-    if( audioRecorder->isEnabled() ) {
+    if(bufferPlayer) bufferPlayer->stop();
+    if( audioRecorder && audioRecorder->isEnabled() ) {
         audioRecorder->stop();
         if(saveAudio && recordingCount > 0) {
             fs::path path = getRecordingPath(recordingCount);

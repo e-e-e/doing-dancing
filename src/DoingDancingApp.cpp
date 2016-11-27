@@ -30,15 +30,14 @@ void DoingDancingApp::setup() {
     }
     
     voice = new VoiceLooper(path, seconds);
-    
 #ifdef DOING_DANCING_AUTOMATED
     change();
 #endif
 }
 
 void DoingDancingApp::cleanup () {
-    if( capture )   delete capture;
-    if( voice )   delete voice;
+    if( capture != nullptr )   delete capture;
+    if( voice != nullptr )   delete voice;
 }
 
 void DoingDancingApp::keyDown( KeyEvent event ) {

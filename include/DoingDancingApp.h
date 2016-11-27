@@ -20,8 +20,8 @@ using namespace std;
 class DoingDancingApp : public App {
     
     u_int8_t        state = DOING_DANCING_INIT;
-    CaptureLooper*  capture;
-    VoiceLooper*    voice;
+    CaptureLooper*  capture = nullptr;
+    VoiceLooper*    voice = nullptr;
     
     Timer           timer;
     
