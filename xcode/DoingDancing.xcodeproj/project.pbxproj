@@ -75,7 +75,7 @@
 		43C397B91DD86FB00030BB9A /* EDSDKTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EDSDKTypes.h; path = ../include/EDSDKTypes.h; sourceTree = "<group>"; };
 		5323E6B10EAFCA74003A9687 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		5E415559B18041EC9D507F1C /* Resources.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Resources.h; path = ../include/Resources.h; sourceTree = "<group>"; };
-		8D1107320486CEB800E47090 /* DoingDancing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoingDancing.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D1107320486CEB800E47090 /* Doing Dancing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Doing Dancing.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8BE72CCF89A475198F89AA1 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
 		E845DC2FFD6A484EAA266711 /* DoingDancing_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = "\"\""; path = DoingDancing_Prefix.pch; sourceTree = "<group>"; };
 		F4E7A1CDAF294FF89F9BB281 /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = CinderApp.icns; path = ../resources/CinderApp.icns; sourceTree = "<group>"; };
@@ -157,7 +157,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D1107320486CEB800E47090 /* DoingDancing.app */,
+				8D1107320486CEB800E47090 /* Doing Dancing.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -229,7 +229,7 @@
 			name = DoingDancing;
 			productInstallPath = "$(HOME)/Applications";
 			productName = DoingDancing;
-			productReference = 8D1107320486CEB800E47090 /* DoingDancing.app */;
+			productReference = 8D1107320486CEB800E47090 /* Doing Dancing.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -331,8 +331,8 @@
 					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libippicv.a\"",
 					"\"-lz\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.libcinder.${PRODUCT_NAME:rfc1034identifier}";
-				PRODUCT_NAME = DoingDancing;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.editionlesseditions.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "Doing Dancing";
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../blocks/QuickTime/include ../../../blocks/Cinder-OpenCV3/include ../../../blocks/Cinder-OpenCV3/include/opencv2";
 				VALID_ARCHS = "i386 x86_64";
@@ -388,8 +388,8 @@
 					"\"../../../blocks/Cinder-OpenCV3/lib/macosx/libippicv.a\"",
 					"\"-lz\"",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.libcinder.${PRODUCT_NAME:rfc1034identifier}";
-				PRODUCT_NAME = DoingDancing;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.editionlesseditions.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "Doing Dancing";
 				STRIP_INSTALLED_PRODUCT = YES;
 				SYMROOT = ./build;
 				USER_HEADER_SEARCH_PATHS = "\"$(CINDER_PATH)/include\" ../include ../../../blocks/QuickTime/include ../../../blocks/Cinder-OpenCV3/include ../../../blocks/Cinder-OpenCV3/include/opencv2";

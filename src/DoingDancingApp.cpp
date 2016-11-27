@@ -14,6 +14,7 @@ void DoingDancingApp::prepareSettings( App::Settings *settings )
     settings->setHighDensityDisplayEnabled( false );
     //settings->setFullScreen( true );
     settings->setResizable( false );
+    settings->setTitle("Doing Dancing");
     
 }
 
