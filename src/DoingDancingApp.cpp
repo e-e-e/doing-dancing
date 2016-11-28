@@ -13,17 +13,17 @@ void DoingDancingApp::prepareSettings( App::Settings *settings )
     settings->setFrameRate( 60 );
     settings->setHighDensityDisplayEnabled( false );
     //settings->setFullScreen( true );
-    settings->setResizable( false );
+    settings->setResizable( true );
     settings->setTitle("Doing Dancing");
     
 }
 
 void DoingDancingApp::setup() {
-    int seconds = 180;
+    int seconds = 10;
     fs::path path = getFolderPath(); //getSaveFilePath();
     if( path.empty() ) quit();
     
-    capture = new CaptureLooper(getWindowBounds(), path, seconds);
+    capture = new CaptureLooper(path, seconds);
     if(!capture->isOK()) {
         console() << "THERE WAS A PROBLEM STARTING VIDEO CAPTURE!" << endl;
         quit();
@@ -43,7 +43,14 @@ void DoingDancingApp::cleanup () {
 
 void DoingDancingApp::keyDown( KeyEvent event ) {
     const char key = event.getChar();
+    const bool fs = isFullScreen();
     switch (key) {
+        case 'f':
+        case 'F':
+            setFullScreen(!fs);
+            if(!fs) hideCursor();
+            else showCursor();
+            break;
         case ' ':
 #ifndef DOING_DANCING_AUTOMATED
             change();
@@ -70,7 +77,12 @@ void DoingDancingApp::update() {
 
 void DoingDancingApp::draw() {
     gl::clear( Color( 0, 0, 0 ) );
-    capture->draw();
+    gl::color(1,1,1);
+    capture->draw(getWindowBounds());
+    if(!voice->isStopped()) {
+        gl::color(1, 0, 0);
+        gl::drawSolidCircle(vec2(20,20), 10.0);
+    }
 }
 
 void DoingDancingApp::change() {
@@ -92,11 +104,11 @@ void DoingDancingApp::change() {
     }
 
 }
+//
+//RendererGl::Options optionsGL() {
+//    RendererGl::Options opts;
+//    opts.msaa(0);
+//    return opts;
+//}
 
-RendererGl::Options optionsGL() {
-    RendererGl::Options opts;
-    opts.msaa(0);
-    return opts;
-}
-
-CINDER_APP( DoingDancingApp, RendererGl(optionsGL()) , DoingDancingApp::prepareSettings )
+CINDER_APP( DoingDancingApp, RendererGl , DoingDancingApp::prepareSettings )

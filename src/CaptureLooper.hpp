@@ -26,7 +26,6 @@ class CaptureLooper {
     const u_int32_t         duration;
     const u_int32_t         framerate;
     const double            framerateInSeconds;
-    const Area              windowBounds;
     u_int32_t               width = 1056;
     u_int32_t               height = 704;
     u_int8_t                capture_state = 0;
@@ -53,19 +52,14 @@ class CaptureLooper {
     
     
 public:
-    CaptureLooper(const Area& windowBounds, fs::path path, const u_int32_t duration = 3, u_int32_t framerate=15);
+    CaptureLooper(fs::path path, const u_int32_t duration = 3, u_int32_t framerate=15);
     ~CaptureLooper();
     
     inline bool isOK() const { return (capture_state != CL_NO_CAPTURE); }
     inline bool isRecording() const { return recording; }
-    inline Area drawingBounds () const {
-        if(mTexture)
-            return (Area) Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
-        return Area::zero();
-    };
     
     void update();
-    void draw() const;
+    void draw(const Area&) const;
     void preload();
     void start();
     

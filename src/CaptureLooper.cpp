@@ -48,9 +48,10 @@ void printChannelOrder (SurfaceRef ref) {
     cout << endl;
 }
 
-CaptureLooper::CaptureLooper(const Area& windowBounds, fs::path path, const u_int32_t duration, u_int32_t framerate)
-    : framerate(framerate), windowBounds(windowBounds),
-      saveFolder(path), duration(duration*framerate),
+CaptureLooper::CaptureLooper(fs::path path, const u_int32_t duration, u_int32_t framerate)
+    : framerate(framerate),
+      saveFolder(path),
+      duration(duration*framerate),
       framerateInSeconds(1.0 / (double) framerate )
 {
     EdsError err = setupEdsCamera();
@@ -146,7 +147,7 @@ void CaptureLooper::update() {
     }
 }
 
-void CaptureLooper::draw() const {
+void CaptureLooper::draw(const Area& windowBounds) const {
     if( mTexture && recording) {
         Rectf centeredRect = Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
         gl::color(1.0, 1.0, 1.0);
