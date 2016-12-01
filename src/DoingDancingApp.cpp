@@ -19,7 +19,7 @@ void DoingDancingApp::prepareSettings( App::Settings *settings )
 }
 
 void DoingDancingApp::setup() {
-    int seconds = 10;
+    int seconds = 8*60;
     fs::path path = getFolderPath(); //getSaveFilePath();
     if( path.empty() ) quit();
     

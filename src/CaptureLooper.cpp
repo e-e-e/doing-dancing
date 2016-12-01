@@ -54,10 +54,11 @@ CaptureLooper::CaptureLooper(fs::path path, const u_int32_t duration, u_int32_t 
       duration(duration*framerate),
       framerateInSeconds(1.0 / (double) framerate )
 {
-    EdsError err = setupEdsCamera();
-    if( err != EDS_ERR_OK ) {
-        setupDefaultCapture();
-    }
+    //EdsError err =
+    setupEdsCamera();
+//    if( err != EDS_ERR_OK ) {
+//        setupDefaultCapture();
+//    }
     cout << framerateInSeconds << ' ' << framerate << endl;
 }
 
