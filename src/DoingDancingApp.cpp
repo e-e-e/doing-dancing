@@ -63,6 +63,8 @@ void DoingDancingApp::keyDown( KeyEvent event ) {
 
 void DoingDancingApp::update() {
     
+    if( ((int)floor(timer.getSeconds()) % 60) == 0 ) capture->keepAlive();
+    
     if( state == DOING_DANCING_VOICE && voice->hasBeenAMoment() ) {
         capture->preload();
     }

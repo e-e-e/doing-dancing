@@ -32,6 +32,7 @@ class CaptureLooper {
     
     bool                    preloaded = false;
     bool                    recording = false;
+    bool                    recorded_first_frame = false;
     u_int8_t                recording_count = 0;
     u_int32_t               frameCount = 0;
     Timer                   timer;

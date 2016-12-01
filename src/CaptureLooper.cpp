@@ -128,6 +128,7 @@ void CaptureLooper::update() {
             toTexture = Surface::create( fromOcv((output.empty())? capture : output ));
             
             if( mMovieExporter && recording) {
+                recorded_first_frame = true;
                 mMovieExporter->addFrame(*toTexture);
             }
             
@@ -149,7 +150,7 @@ void CaptureLooper::update() {
 }
 
 void CaptureLooper::draw(const Area& windowBounds) const {
-    if( mTexture && recording) {
+    if( mTexture && recording && recorded_first_frame) {
         Rectf centeredRect = Rectf( mTexture->getBounds() ).getCenteredFit( windowBounds, true );
         gl::color(1.0, 1.0, 1.0);
         gl::draw( mTexture, centeredRect );
@@ -209,6 +210,7 @@ void CaptureLooper::stop() {
     frameCount = 0;
     recording = false;
     preloaded = false;
+    recorded_first_frame = false;
     
 }
 
