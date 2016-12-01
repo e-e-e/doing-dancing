@@ -63,6 +63,7 @@ public:
     void draw(const Area&) const;
     void preload();
     void start();
+    EdsError keepAlive();
     
 private:
     
@@ -91,7 +92,7 @@ private:
     static EdsError EDSCALLBACK handlePropertyEvent( EdsPropertyEvent, EdsPropertyID, EdsUInt32, EdsVoid*);
     static EdsError EDSCALLBACK handleObjectEvent( EdsObjectEvent event, EdsBaseRef object,EdsVoid* context);
     
-    EdsError keepAlive();
+    
     EdsError startLiveview();
     EdsError endLiveview();
     EdsError downloadEvfData();
